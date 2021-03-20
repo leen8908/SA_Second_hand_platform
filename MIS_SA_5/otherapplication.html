@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+  <meta name="generator" content="Jekyll v3.8.5">
+
+  <title>查看他人的申請 ｜ 二手物交換平台</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="statics/css/bootstrap.min.css" rel="stylesheet">
+  <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+  <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+
+
+  <style>
+    .bd-placeholder-img {
+      font-size: 1.125rem;
+      text-anchor: middle;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    @media (min-width: 768px) {
+      .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+      }
+    }
+  </style>
+  <!-- Custom styles for this template -->
+  <link href="statics/css/product.css" rel="stylesheet">
+
+  <script src="statics/js/jquery-3.4.1.min.js"></script>
+</head>
+
+<body>
+	<div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+    	<h5 class="my-0 mr-md-auto font-weight-normal">二手物交換平台</h5>
+    	<nav class="my-2 my-md-0 mr-md-3">
+      		<a class="p-2 text-dark" href="product.html">首頁</a>
+    		<a class="p-2 text-dark" href="EProduct.html">期望物品列表</a>
+      		<a class="p-2 text-dark" href="memberhomepage.html">會員專區</a>
+      		<input type="button" class="btn btn-outline-secondary" value="登出" id="sign_out">
+    	</nav>
+  	</div>
+			<div  style="margin:25px;margin-left:70px; padding:10px">
+				<h2>他人申請清單</h2>
+				<a href="product.html">首頁</a> >  <a href="memberhomepage.html">會員專區</a> > 查看他人申請
+			</div>
+		
+			
+			<div id="flashMessage" class="message" style="display: none;"></div>
+
+			<div class="album py-5 bg-light">
+    			<div class="container">
+      				<table id="table" class="table table-striped table-hover">
+						<thead>
+							<tr>
+								<th>訂單編號</th>
+								<th>買家</th>
+								<th>欲申請商品</th>
+								<th>狀態</th>
+								<th>申請日期</th>
+								<th>功能</th>
+							</tr>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
+			<script type="text/javascript">
+			
+			 	// 取得網址參數
+            	var url_string = window.location.href;
+            	var url = new URL(url_string);
+            	//var member_id = url.searchParams.get("id");
+            	var member_id = getCookie("member_id");
+            	//var member_id = 2;
+            	var sql_num = 0;
+            	var type = "物主";
+            	
+            	//設定cookies
+    			function setCookie(cname, cvalue,exdays) {
+    	  			var d = new Date();
+    	  			d.setTime(d.getTime() + (exdays*24*60*60*1000));
+    	  			var expires = "expires="+ d.toUTCString();
+    	  			document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    			}
+    			//取cookies函式  
+    			function getCookie(cname) {
+    	  			var name = cname + "=";
+    	  			var decodedCookie = decodeURIComponent(document.cookie);
+    	  			var ca = decodedCookie.split(';');
+    	  			for(var i = 0; i <ca.length; i++) {
+    	    			var c = ca[i];
+    	    			while (c.charAt(0) == ' ') {
+    	      				c = c.substring(1);
+    	    			}
+    	    		if (c.indexOf(name) == 0) {
+    	      			return c.substring(name.length, c.length);
+    	    		}
+    	  			}
+    	  			return "";
+    			}
+    			//刪除cookie
+    			function delCookie(name){
+    	  			document.cookie = name +"= ;expires=Thu, 01 Jan 1970 00:00:00 UTC ;path=/";
+    			}
+		
+                function deleteApplication(id) {
+                    var check = window.confirm("確認取消申請？");
+                    if (check == true) {
+                        console.log("You pressed OK!");
+                        var request = {'id': id};   //物件(key,value)
+                        var data_string = JSON.stringify(request);   //JSON.stringify()把javascript轉成json
+                        $.ajax({
+                            type: "DELETE",
+                            url: "api/application.do",
+                            data: data_string,
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    $("#flashMessage").html("成功! 已經成功取消申請...");
+                                    $("#flashMessage").show();
+                                    getAllApplication();
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                        });
+                    }
+                    else {
+                        console.log("You pressed Cancel!");
+                    }
+                }
+                
+             	
+                // 將JSON格式轉換成字串
+                
+                
+
+                function getAllApplication() {
+                	
+                	// 將資料組成JSON格式
+                   /* var data_object = {
+                        'member_id': member_id,
+                        'type': type
+                    };*/
+                   // var data_string = JSON.stringify(data_object);
+                    // 發出POST的GET請求取得所有申請列表
+                    $.ajax({
+                            type: "GET",
+                            url: "api/application.do",
+                            data: {
+                                'id': member_id,
+                                'type': type
+                            },
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    updateTable(response.response.data);//response回來
+                                    
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                    });
+                }
+                
+                // 更新申請列表表格
+                function updateTable(data) {
+                    $("#table > tbody").empty();
+                    var table_html = '';
+                    $.each(data, function(index, value) {
+                        table_html += '<tr><td scope="row">' + value['order_id'] + '</td>';
+                        table_html += '<td>' + value['buyer_name'] + '</td>';
+                        table_html += '<td>' + value['product_name'] + '</td>';
+                        table_html += '<td>' + value['status'] + '</td>';
+                        table_html += '<td>' + value['start_time'] + '</td>';
+                        table_html += '<td>' + '<a href="orderdetail.html?application_id=' + value['application_id'] + '&from=物主&mean_of_transaction='+value['mean_of_transaction']+'&exchangedProduct_id='+value['exchangedProduct_id']+'">查看</a> | ';
+                        table_html += '<a href="javascript: deleteApplication(' + value['application_id'] + ');">取消</a></td></tr>';
+                    })
+
+                    $("#table > tbody").append(table_html);
+                }
+                
+                //登出
+  				function sign_out(){
+  					if(getCookie("member_id")== ""){
+                      	alert("親!您還沒有登入過ㄛ");
+                  	}
+                  	else{	
+                  	delCookie("member_id");
+                  	delCookie("managerOrNot");
+                  	location.href="login.html"
+                  	alert("已登出!");
+                  	
+                  	}
+               	}
+                  
+                  $(document).ready(function() {
+                	  getAllApplication();
+                      var $form2 = $('#sign_out');
+                      $form2.click(function() {
+                      	sign_out();
+                      });
+                  });
+                
+            </script>
+		</div>
+		
+	</div>
+	
+</body>
+
+</html>

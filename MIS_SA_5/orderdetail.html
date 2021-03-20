@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+  <meta name="generator" content="Jekyll v3.8.5">
+
+  <title>申請資料詳情 ｜ 二手物交換平台</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="statics/css/bootstrap.min.css" rel="stylesheet">
+  <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+  <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+
+
+  <style>
+    .bd-placeholder-img {
+      font-size: 1.125rem;
+      text-anchor: middle;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    @media (min-width: 768px) {
+      .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+      }
+    }
+  </style>
+  <!-- Custom styles for this template -->
+  <link href="statics/css/product.css" rel="stylesheet">
+
+  <script src="statics/js/jquery-3.4.1.min.js"></script>
+</head>
+
+<body>
+<div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+    <h5 class="my-0 mr-md-auto font-weight-normal">二手物交換平台</h5>
+    <nav class="my-2 my-md-0 mr-md-3">
+      	<a class="p-2 text-dark" href="product.html">首頁</a>
+    	<a class="p-2 text-dark" href="product.html">一般物品列表</a>
+      	<a class="p-2 text-dark" href="memberhomepage.html">會員專區</a>
+         	<input type="button" class="btn btn-outline-secondary" value="登出" id="sign_out">
+    </nav>
+  </div>
+	<div id="container">
+		<div id="header">
+			
+		</div>
+		<div id="content">
+			<div  style="margin:25px;margin-left:70px; padding:10px;">
+				<h2>申請資料詳情</h2>
+				<div id="flashMessage" class="message" style="display: none;"></div>
+				<div id='order_panel' >
+				</div>
+				<div style="text-align:right;">
+					<button id="check" style="margin:7px;" class="btn btn-outline-success " type="button" style="display: none;">確認媒合</button>
+    				<button id="clean" style="margin:7px;" class="btn btn-outline-danger " type="button">退回申請</button>
+				</div>
+			</div>
+		</div>
+	</div>
+			
+	<script type="text/javascript">
+	
+	
+	
+
+				// 取得網址參數
+                var url_string = window.location.href;
+                var url = new URL(url_string);
+                var application_id = url.searchParams.get("application_id");
+                var from = url.searchParams.get("from");
+                var member_id = url.searchParams.get("member_id");
+                var sql_num = 0;
+                var type ="申請";
+                var mean_of_transaction = url.searchParams.get("mean_of_transaction");
+                var exchangedProduct_name =  "";
+                var exchangedProduct_id = 0;
+                /*var [client_select_obj, client_select_amount]  = getSelectDataFromClient();
+                localStorage.removeItem("client_select_obj");
+                localStorage.removeItem("client_select_amount");*/
+                
+               /* function getSelectDataFromClient() {
+                	let select = JSON.parse(localStorage.getItem("client_select_obj"));
+                	let amount = JSON.parse(localStorage.getItem("client_select_amount"));
+                	select = !select ? new Array() : select;
+                	amount = !amount ? new Array() : amount;
+                	return [select, amount];
+                }
+                if(client_select_obj.length != 0){
+                	
+                	exchangedProduct_name = client_select_obj[0];
+                	
+                }*/
+                
+                var select_product_name = getCookie("select_product_name");
+                if (select_product_name != ""){
+                	
+                	exchangedProduct_name = select_product_name;
+                	exchangedProduct_id = getCookie("select_product_id");
+                	
+                }
+                
+                //設定cookies
+              	function setCookie(cname, cvalue,exdays) {
+              			var d = new Date();
+              			d.setTime(d.getTime() + (exdays*24*60*60*1000));
+              			var expires = "expires="+ d.toUTCString();
+              			document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+              	}
+              	//取cookies函式  
+              	function getCookie(cname) {
+              			var name = cname + "=";
+              			var decodedCookie = decodeURIComponent(document.cookie);
+              			var ca = decodedCookie.split(';');
+              			for(var i = 0; i <ca.length; i++) {
+              			var c = ca[i];
+              			while (c.charAt(0) == ' ') {
+                				c = c.substring(1);
+              			}
+              		if (c.indexOf(name) == 0) {
+                			return c.substring(name.length, c.length);
+              		}
+              			}
+              			return "";
+              	}
+              	//刪除cookie
+              	function delCookie(name){
+              			document.cookie = name +"= ;expires=Thu, 01 Jan 1970 00:00:00 UTC ;path=/";
+              	}
+				
+                function deleteApplication(application_id) {
+                    var check = window.confirm("確認取消申請？");
+                    if (check == true) {
+                        console.log("You pressed OK!");
+                        var request = {'id': application_id};   //物件(key,value)
+                        var data_string = JSON.stringify(request);   //JSON.stringify()把javascript轉成json
+                        $.ajax({
+                            type: "DELETE",
+                            url: "api/application.do",
+                            crossDomain: true,
+                            data: data_string,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    $("#flashMessage").html("成功! 已經成功取消申請...");
+                                    $("#flashMessage").show();
+                                    
+                                    	alert("返回");
+                                    	window.history.back(-1);
+                                    	
+                                    
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                        });
+                    }
+                    else {
+                        console.log("You pressed Cancel!");
+                    }
+                }
+                
+
+                function getApplicationByID(application_id) {
+                    // 發出POST的GET請求取得所有申請列表
+                    $.ajax({
+                            type: "GET",
+                            url: "api/application.do",
+                            data: {
+                                'id': application_id,
+                                'from': from
+                            },
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    updateHTML(response.response.data);//response回來
+                                    
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                    });
+                }
+                
+                // 更新申請畫面
+             	function updateHTML(data) {
+		     		var inner_html = '';
+	  	     		var temp = '';
+	  	     		$('#order_panel').empty;
+	  	     		$.each(data, function(index, value) {
+	  	     			
+	  	     			//mean_of_transaction = value['mean_of_transaction'];
+	  	     			//exchangedProduct_name =  value['exchangedProduct_name'];
+	  	     			
+	  	     		//之後要加cookie抓selectproduct選的商品exchangedProduct_name	
+                   	if(from == "物主"){
+                   		if(value['mean_of_transaction'] == "以物易物" ){
+                   			if(value['exchangedProduct_name'] != ""){
+                   				
+                   				exchangedProduct_name = value['exchangedProduct_name'];
+                   				exchangedProduct_id = value['exchangedProduct_id'];
+                   				
+                   			}
+                   			temp ='<a class="link-secondary" href="product.html">首頁</a> >  <a class="link-secondary" href="memberhomepage.html">會員專區</a> >  <a class="link-secondary" href="otherapplication.html">查看他人申請</a> > 申請詳情';
+		  					temp += '</div>';
+		  					
+		  					temp +='<div class="album py-5 bg-light">';
+      						temp +='<div class="card text-center">';
+      						temp += '<div class="card-header mb-1 text-muted">' + value['category'] + '</div>';
+      						temp +='<div class="card-body">';
+      						temp += '<h1 class="card-title">' + value['product_name'] + '</h1>';
+    		  				temp += '<p class="card-text">描述：' + value['description'] + '</p>';
+      						
+    		  				
+    		  				temp += '<footer class="blockquote-footer" style="padding:10px;">買家：' + value['buyer_name'];
+    		  				temp += '<div>交易方式：' + value['mean_of_transaction'] + '</div>';
+    		  				temp += '<div>狀態：' + value['status']+'</div>';
+    		  				temp += '<div>選擇對方商品：' + exchangedProduct_name + '</div>';
+    		  				temp += '<a href="selectproduct.html?buyer_id=' + value['buyer_id'] + ' "><button id="check" style="margin:10px;" class="btn btn-outline-warning" type="button" >瀏覽對方商品</button></a>';
+    		  				
+    		  				temp += '</div>';
+    		  				temp += '<div class="card-footer text-muted">申請時間：' + value['start_time']+'</div>';
+    		  				//temp += '</div></div>';
+    		  				if(value['exchangedProduct_name'] == "" ){
+    		  			         $("#clean").show();
+    		  			         $("#check").show();
+    		  			        }
+    		  			        else if(value['status'] == "完成申請"){
+    		  			         $("#check").hide();
+    		  			         $("#clean").hide();
+    		  			         
+    		  			        }
+    		  			        else if("等待買家回覆"){
+    		  			         $("#check").hide();
+    		  			         $("#clean").show();
+    		  			         
+    		  			        }
+		  				
+		  				
+		  			}
+		  				else{
+		  							  						  					
+		  					temp ='<a class="link-secondary" href="product.html">首頁</a> >  <a class="link-secondary" href="memberhomepage.html">會員專區</a> >  <a class="link-secondary" href="otherapplication.html">查看他人申請</a> > 申請詳情';
+		  					temp += '</div>';
+		  					
+		  					temp +='<div class="album py-5 bg-light">';
+      						temp +='<div class="card text-center">';
+      						temp += '<div class="card-header mb-1 text-muted">' + value['category'] + '</div>';
+      						temp +='<div class="card-body">';
+      						temp += '<h1 class="card-title">' + value['product_name'] + '</h1>';
+    		  				temp += '<p class="card-text">描述：' + value['description'] + '</p>';
+      						
+    		  				
+    		  				temp += '<footer class="blockquote-footer" style="padding:10px;">買家：' + value['buyer_name'];
+    		  				temp += '<div>交易方式：' + value['mean_of_transaction'] + '</div>';
+    		  				temp += '<div>狀態：' + value['status']+'</div>';
+    		  				temp += '<div>代幣：' + value['token'] + '</div></footer>';
+    		  				
+    		  				temp += '</div>';
+    		  				temp += '<div class="card-footer text-muted">申請時間：' + value['start_time']+'</div>';
+    		  						  							  				
+    		  				if(value['status'] == "完成申請" ){
+    		  		          
+    		  		          $("#check").hide();
+    		  		          $("#clean").hide();
+    		  		          
+    		  		         }
+    		  		         else if(value['status'] == "等待物主回覆"){
+    		  		          $("#check").show();
+    		  		          $("#clean").show();
+    		  		          
+    		  		         }
+			  				
+		  
+		  				}
+                   	
+					}
+                   	else{
+                   		if(value['mean_of_transaction'] == "以物易物"){
+							if(value['exchangedProduct_name'] != ""){
+                   				
+                   				exchangedProduct_name = value['exchangedProduct_name'];
+                   				exchangedProduct_id = value['exchangedProduct_id'];
+                   			}
+													
+                   			temp ='<a class="link-secondary" href="product.html">首頁</a> >  <a class="link-secondary" href="memberhomepage.html">會員專區</a> >  <a class="link-secondary" href="myapplication.html">查看我的申請</a> > 申請詳情';
+                   			temp += '</div>';
+                   			
+                   			temp +='<div class="album py-5 bg-light">';
+      						temp +='<div class="card text-center">';
+      						temp += '<div class="card-header mb-1 text-muted">' + value['category'] + '</div>';
+      						temp +='<div class="card-body">';
+      						temp += '<h1 class="card-title">' + value['product_name'] + '</h1>';
+    		  				temp += '<p class="card-text">描述：' + value['description'] + '</p>';
+    		  				
+    		  				temp += '<footer class="blockquote-footer" style="padding:10px;">物主：' + value['owner_name'];
+    		  				temp += '<div>交易方式：' + value['mean_of_transaction'] + '</div>';
+    		  				temp += '<div>選擇對方商品：' + exchangedProduct_name + '</div>';
+    		  				temp += '<div>狀態：' + value['status']+'</div>';
+    		  				temp += '<a href="viewproduct.html?exchangedProduct_id=' + value['exchangedProduct_id'] +'type=' +type+' "><button id="check" style="margin:10px;" class="btn btn-outline-warning" type="button" >查看商品</button></a>';
+    		  				
+    		  				temp += '</div>';
+    		  				temp += '<div class="card-footer text-muted">申請時間：' + value['start_time']+'</div>';
+    		  				//temp += '</div></div>';
+    		  				if(value['status'] == "等待買家回覆"){
+    		  		             
+    		  		             $("#check").show();
+    		  		             $("#clean").show();
+    		  		            }
+    		  		            else if(value['status'] == "完成申請"){
+    		  		             
+    		  		             $("#check").hide();
+    		  		          $("#clean").hide();
+    		  		             
+    		  		            }
+    		  		            else if(value['status'] == "等待物主回覆"){
+    		  		             
+    		  		             $("#check").hide();
+    		  		             $("#clean").show();
+    		  		            }
+    		  				
+    		  			}
+    		  				else{
+    		  					console.log("讚讚");  		  					
+    		  					temp ='<a class="link-secondary" href="product.html">首頁</a> >  <a class="link-secondary" href="memberhomepage.html">會員專區</a> >  <a class="link-secondary" href="myapplication.html">查看我的申請</a> > 申請詳情';
+    		  					temp += '</div>';
+    		  					
+    		  					temp +='<div class="album py-5 bg-light">';
+          						temp +='<div class="card text-center">';
+          						temp += '<div class="card-header mb-1 text-muted">' + value['category'] + '</div>';
+          						temp +='<div class="card-body">';
+          						temp += '<h1 class="card-title">' + value['product_name'] + '</h1>';
+        		  				temp += '<p class="card-text">描述：' + value['description'] + '</p>';
+    		  					
+        		  				temp += '<footer class="blockquote-footer" style="padding:10px;">物主：' + value['owner_name'];
+        		  				temp += '<div>交易方式：' + value['mean_of_transaction'] + '</div>';
+        		  				temp += '<div>狀態：' + value['status']+'</div>';
+        		  				temp += '<div>代幣：' + value['token'] + '</div></footer>';
+        		  				
+        		  				temp += '</div>';
+        		  				temp += '<div class="card-footer text-muted">申請時間：' + value['start_time']+'</div>';
+        		  				//temp += '</div></div>';
+        		  				if(value['status'] == "完成申請"){
+        		  	                 $("#check").hide();
+        		  	                 $("#clean").hide();
+        		  	                }
+        		  	                else if(value['status'] == "等待物主回覆"){
+        		  	                 $("#check").hide();
+        		  	                 $("#clean").show();
+        		  	                 
+        		  	                }
+    			  				
+    		  				}
+                   		
+                   	}
+		  			})                
+		  			inner_html = temp;
+	  	     		
+	  
+	 				 $('#order_panel').append(inner_html);
+                }
+                
+             	 var data_object = {
+                     	
+                     	"mean_of_transaction": mean_of_transaction,
+                     	"exchangedProduct_id" : exchangedProduct_id,
+                     	"from" : from,
+                     	"application_id" : application_id,
+                     	"exchangedProduct_name" : getCookie("select_product_name")
+                     };
+                
+             	function updateApplication(application_id){
+                	
+             		var data_string = JSON.stringify(data_object);
+             		if(mean_of_transaction == "以物易物" && exchangedProduct_name == ""){
+             			
+             			alert("親，請先選擇欲作為交換之商品");
+             			
+             		}
+             		else{
+             			
+             			$.ajax({
+                            type: "PUT",
+                            url: "api/application.do",
+                            data: data_string,
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                
+                                if(response.status == 200){
+                                    
+                                	/*$('#flashMessage').html("確認媒合!");
+                                    $('#flashMessage').show();*/
+                                    alert("親，您已確認媒合");
+                                    if(getCookie("select_product_name")!=""){
+                                    	
+                                    	delCookie("select_product_name");
+                                    	delCookie("select_product_id");
+                                    	
+                                    }
+                                	
+                                    window.location.reload();
+                                }
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                    });
+             			
+             		}
+               	 
+               	
+               }
+             	
+             	/*function getProduct(product_id){
+             		
+             		window.open('viewproduct.html?product_id='+product_id);
+             		
+             	}*/
+                
+             	$("#clean").click(function () {
+                	console.log("[@Action]退回申請");
+                	deleteApplication(application_id);
+                });
+            	$("#check").click(function () {
+                	console.log("[@Action]確認媒合");
+                	updateApplication(application_id);
+                });
+            	
+            	
+            	//登出
+				function sign_out(){
+					if(getCookie("member_id")== ""){
+                    	alert("親!您還沒有登入過ㄛ");
+                	}
+                	else{	
+                	delCookie("member_id");
+                	delCookie("managerOrNot");
+                	location.href="login.html"
+                	alert("已登出!");
+                	
+                	}
+             	}
+                
+                $(document).ready(function() {
+                	getApplicationByID(application_id);
+                    var $form2 = $('#sign_out');
+                    $form2.click(function() {
+                    	sign_out();
+                    });
+                });
+               
+                
+            </script>
+	
+</body>
+
+</html>

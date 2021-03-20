@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="statics/css/memnmanhomepage.css">
+    <script src="statics/js/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+    <title>管理員專區 ｜ 二手物交換</title>
+</head>
+
+<body>
+	<div id="container">
+		<div id="managerheader">
+            <i><strong>二手物交換</strong></i>
+            <span id="managerheadhtomhp">
+            	<a href="product.html">首頁</a> > <a href="managerhomepage.html">管理員專區</a>
+            </span>
+        </div>
+        <div id="managercontentname">
+        		<h1>管理員專區</h1>
+        </div>
+        <div id="managerfninfo">
+        	
+        
+		<div id="managerinfo">
+			<strong>管理員資料</strong><hr> 
+			<table  style="border:5px #cccccc solid;" rules="all" cellpadding='5' >
+　				<tr>
+				<td colspan="2"><strong>帳號名稱</strong></td>
+				<td colspan="2"><strong>手機</strong></td>
+				<td colspan="2"><strong>電子郵件</strong></td>
+				</tr>
+				<tr>
+				<td colspan="2"><input type="text" value="帳號名稱" id="name" disabled ></td>
+				<!--<td colspan="2"><input type="password" value="密碼" id="password" disabled ></td>  -->
+				<td colspan="2"><input type="text" value="手機" id="phonenumber" disabled></td>
+				<td colspan="2"><input type="text" value="電子郵件" id="email"disabled></td>
+				</tr>
+				<tr>
+				<td colspan="2"><strong>密碼</strong></td>	
+				<td colspan="2"><strong>停權</strong></td>				
+				<td colspan="2"><strong>代幣總額</strong></td>
+				</tr>
+				<tr>
+				<td colspan="2"><input type="text" value="密碼" id="password" disabled >
+				<td colspan="2"><input type="text" value="停權" id="status"disabled></td>
+				<td colspan="2"><input type="text" value="代幣總額" id="token_amount"disabled></td>
+				</tr>
+			</table>
+			</div>
+			<div id="managerfunction">
+        		<h2>管理員功能</h2>
+        		<input type="button" value="新增管理員" onclick="location.href='addManager.html'">
+				 <input type="button" value="管理會員" onclick="location.href='index.html'">
+				 <input type="button" value="管理一般/期望物品" onclick="location.href='ManageProduct.html'">
+				 <input type="button" value="管理檢舉一般物品" onclick="location.href='reportIndex.html'">
+        </div>
+			 <script type="text/javascript">
+
+                function getMember() {
+                    // 發出POST的GET請求取得會員資訊
+             		var member_id=getCookie('member_id');
+                    $.ajax({
+                            type: "GET",
+                            url: "api/member.do",
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            data:{id:member_id},
+                            success: function (response) {
+                                if(response.status == 200){
+                                	document.getElementById('name').value = response['response']['data'][0]['name'];
+                              		document.getElementById('password').value = response['response']['data'][0]['password'];
+                              		document.getElementById('phonenumber').value = response['response']['data'][0]['phoneNumber'];
+                              		document.getElementById('email').value = response['response']['data'][0]['email'];
+                              		document.getElementById('status').value = response['response']['data'][0]['status'];
+                              		document.getElementById('token_amount').value = response['response']['data'][0]['token_amount'];
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                    });
+                }
+                
+                
+              //取cookies函式  
+            	function getCookie(cname) {
+				  var name = cname + "=";
+				  var decodedCookie = decodeURIComponent(document.cookie);
+				  var ca = decodedCookie.split(';');
+				  for(var i = 0; i <ca.length; i++) {
+				    var c = ca[i];
+				    while (c.charAt(0) == ' ') {
+				      c = c.substring(1);
+				    }
+				    if (c.indexOf(name) == 0) {
+				      return c.substring(name.length, c.length);
+				    }
+				  }
+				  return "";
+				}
+              
+              
+                $(document).ready(function() {
+                    getMember();
+                });
+            </script>
+		</div>
+		
+       
+	</div>	
+	
+</html>

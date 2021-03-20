@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+  <meta name="generator" content="Jekyll v3.8.5">
+
+  <title>交易資料詳情 ｜ 二手物交換平台</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="statics/css/bootstrap.min.css" rel="stylesheet">
+  <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+  <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+
+
+  <style>
+    .bd-placeholder-img {
+      font-size: 1.125rem;
+      text-anchor: middle;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    @media (min-width: 768px) {
+      .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+      }
+    }
+  </style>
+  <!-- Custom styles for this template -->
+
+  <script src="statics/js/jquery-3.4.1.min.js"></script>
+</head>
+
+<body>
+<div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+    <h5 class="my-0 mr-md-auto font-weight-normal">二手物交換平台</h5>
+    <nav class="my-2 my-md-0 mr-md-3">
+      	<a class="p-2 text-dark" href="product.html">首頁</a>
+    	<a class="p-2 text-dark" href="EProduct.html">期望物品列表</a>
+      	<a class="p-2 text-dark" href="memberhomepage.html">會員專區</a>
+      	<input type="button" class="btn btn-outline-secondary" value="登出" id="sign_out">
+    </nav>
+  </div>
+			
+		<div  style="margin:25px;margin-left:70px; padding:10px;">
+				<h2 >交易資料詳情</h2>
+				<div id='oder_panel'></div>
+		</div>
+	
+      		
+	<script type="text/javascript">
+	//設定cookies
+	function setCookie(cname, cvalue,exdays) {
+	  var d = new Date();
+	  d.setTime(d.getTime() + (exdays*24*60*60*1000));
+	  var expires = "expires="+ d.toUTCString();
+	  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+	}
+	//取cookies函式  
+	function getCookie(cname) {
+	  var name = cname + "=";
+	  var decodedCookie = decodeURIComponent(document.cookie);
+	  var ca = decodedCookie.split(';');
+	  for(var i = 0; i <ca.length; i++) {
+	    var c = ca[i];
+	    while (c.charAt(0) == ' ') {
+	      c = c.substring(1);
+	    }
+	    if (c.indexOf(name) == 0) {
+	      return c.substring(name.length, c.length);
+	    }
+	  }
+	  return "";
+	}
+	//刪除cookie
+	function delCookie(name){
+	  document.cookie = name +"= ;expires=Thu, 01 Jan 1970 00:00:00 UTC ;path=/";
+	}
+	console.log(document.cookie);
+	
+	
+
+// 取得網址參數
+                var url_string = window.location.href;
+                var url = new URL(url_string);
+                var help_id = url.searchParams.get("help_id");
+                var from = url.searchParams.get("from");
+                var sql_num = 0;
+                var member_id = getCookie("member_id");
+                //console.log(member_id);
+                function deleteHelp(help_id) {
+                    var check = window.confirm("確認取消幫助？");
+                    if (check == true) {
+                        console.log("You pressed OK!");
+                        var request = {'id': help_id};   //物件(key,value)
+                        var data_string = JSON.stringify(request);   //JSON.stringify()把javascript轉成json
+                        $.ajax({
+                            type: "DELETE",
+                            url: "api/help.do",
+                            crossDomain: true,
+                            data: data_string,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    $("#flashMessage").html("成功! 已經成功取消幫助...");
+                                    $("#flashMessage").show();
+                                    getAllHelp();
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                        });
+                    }
+                    else {
+                        console.log("You pressed Cancel!");
+                    }
+                }
+                
+
+                function getHelpByID(help_id) {
+                    // 發出POST的GET請求取得所有申請列表
+                    $.ajax({
+                            type: "GET",
+                            url: "api/help.do",
+                            data: {
+                                'id': help_id,
+                                'from': from
+                            },
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    updateHTML(response.response.data);//response回來
+                                    
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                            
+                    });
+                }
+                
+                // 更新申請畫面
+             	function updateHTML(data) {
+		     		var inner_html = '';
+	  	     		var temp = '';
+	  	     		$.each(data, function(index, value) {
+                   	if(from == "許願者"){
+                   			console.log("我是許願者");
+                   			temp = '<a class="link-secondary" href="product.html">首頁</a> >  <a class="link-secondary" href="memberhomepage.html">會員專區</a> > <a class="link-secondary" href="otherhelp.html">查看他人的幫助</a> > 幫助詳情';
+                   			temp += '</div>';	
+                   			
+                   			temp +='<div class="album py-5 bg-light">';
+      						temp +='<div class="card text-center">';
+      						//temp +='<div class="container">';
+      						temp += '<div class="card-header mb-1 text-muted">' + value['category'] + '</div>';
+      						temp +='<div class="card-body">';
+      						temp += '<h1 class="card-title">' + value['product_name'] + '</h1>';
+    		  				temp += '<p class="card-text">描述：' + value['description'] + '</p>';
+    		  				
+    		  				temp += '<footer class="blockquote-footer" style="padding:10px;">賣家：' + value['seller_name'];
+    		  				temp += '<div>狀態：' + value['status']+'</div>';
+    		  				temp += '<div>代幣：' + value['token'] + '</div></footer>';
+    		  				temp += '<a  href="javascript: updateHelp(' + value['help_id'] + ');"><button id="check" style="margin:10px;" class="btn btn-outline-success " type="button" >確認許願</button></a>';
+	    			  		temp += '<a  href="javascript: deleteHelp(' + value['help_id'] + ');"><button id="clean" style="margin:10px;" class="btn btn-outline-danger" type="button">退回幫助</button></a>';
+	    			  		temp += '</div>';
+	    			  		
+    		  				temp += '<div class="card-footer text-muted">幫助時間：' + value['start_time']+'</div>';
+    		  							  				
+			  				temp += '</div></div>';
+                   	
+					}
+                   	else if(from == "賣家"){
+                   		console.log("我是賣家");
+                   		temp = '<a class="link-secondary" href="product.html">首頁</a> >  <a class="link-secondary" href="memberhomepage.html">會員專區</a> > <a class="link-secondary" href="myhelp.html">查看我的幫助</a> > 幫助詳情';
+                   		temp += '</div>';	
+                   		
+  						//temp += '<div style="text-align:center; class="shadow p-3 mb-5 bg-white rounded">';
+  						temp +='<div class="album py-5 bg-light">';
+  						temp +='<div class="card text-center">';
+  						
+  						temp += '<div class="card-header mb-1 text-muted">' + value['category'] + '</div>';
+  						temp +='<div class="card-body">';
+  						temp += '<h1 class="card-title">' + value['product_name'] + '</h1>';
+		  				temp += '<p class="card-text">描述：' + value['description'] + '</p>';
+		  				
+  						temp += '<footer class="blockquote-footer" style="padding:10px;">許願者：' + value['wisher_name'];
+		  				temp += '<div>狀態：' + value['status']+'</div>';
+		  				temp += '<div>代幣：' + value['token'] + '</div></footer>';
+		  				temp += '</div>';
+		  				//temp += '<div class="mb-1 text-muted">代幣：' + value['token'] + '</div>';
+		  				temp += '<div class="card-footer text-muted">幫助時間：' + value['start_time'] + '</div>';
+		  				//temp += '</div>';
+    			  		temp += '</div></div>';
+                   	}
+                   	else if(value['status'] == '取物成功，賣家新增代幣10枚' || value['status'] == '取物失敗'||from == '賣家許願訂單'){
+                   		console.log("已取物");
+                   		console.log(value['finished_time']);
+                   		temp = '<a class="link-secondary" href="product.html">首頁</a> >  <a class="link-secondary" href="memberhomepage.html">會員專區</a> > 許願詳情';
+                   		temp += '</div>';		
+                   		temp +='<div class="album py-5 bg-light">';
+  						temp +='<div class="card text-center">';
+  						
+  						temp += '<div class="card-header mb-1 text-muted">' + value['category'] + '</div>';
+  						temp +='<div class="card-body">';
+  						temp += '<h1 class="card-title">' + value['product_name'] + '</h1>';
+		  				temp += '<p class="card-text">描述：' + value['description'] + '</p>';
+		  				
+		  				temp += '<footer class="blockquote-footer" style="padding:10px;">許願者：' + value['wisher_name'];
+		  				temp += '<div>許願者電話：' + value['wisher_phone']+'</div>';
+		  				temp += '<div>賣家：' + value['seller_name']+'</div>';
+		  				temp += '<div>賣家電話：' + value['seller_phone']+'</div>';
+		  				temp += '<div>狀態：' + value['status']+'</div>';
+		  				temp += '<div>代幣：' + value['token'] + '</div></footer>';
+		  				temp += '</div>';
+		  				
+		  				temp += '<div class="card-footer text-muted">';
+		  				temp += '<div>幫助時間：' + value['start_time'] + '</div>';
+		  				temp += '<div>完成時間：' + value['finish_time'] + '</div>';
+		  				temp += '</div>';
+    			  		//temp += '<p class="card-text mb-auto"><button id="view" name="remove[]" type="button" class="btn btn-danger">瀏覽對方商品</button></p>';
+    			  		//temp += '<a href="javascript: updateSuccess(' + value['help_id'] + ');"><button id="check" class="btn btn-primary btn-lg btn-block" type="button" >取物成功</button></a>';
+    			  		//temp += '<a href="javascript: updateFailure(' + value['help_id'] + ');"><button id="clean" class="btn btn-dark btn-lg btn-block" type="button">取物失敗</button></a>';
+    			  		temp += '</div></div>';
+                   	}
+                   	else {
+                   		console.log("未取物");
+                   		console.log(value['seller_phone']);
+                   		temp = '<a class="link-secondary" href="product.html">首頁</a> >  <a class="link-secondary" href="memberhomepage.html">會員專區</a> > <a class="link-secondary" href="mywish.html">查看許願</a> > 許願詳情';
+                   		temp += '</div>';	
+                   		
+                   		temp +='<div class="album py-5 bg-light">';
+  						temp +='<div class="card text-center">';
+  						
+  						temp += '<div class="card-header mb-1 text-muted">' + value['category'] + '</div>';
+  						temp +='<div class="card-body">';
+  						temp += '<h1 class="card-title">' + value['product_name'] + '</h1>';
+		  				temp += '<p class="card-text">描述：' + value['description'] + '</p>';
+                   		
+		  				temp += '<footer class="blockquote-footer" style="padding:10px;">許願者：' + value['wisher_name'];
+		  				temp += '<div>許願者電話：' + value['wisher_phone']+'</div>';
+		  				temp += '<div>賣家：' + value['seller_name']+'</div>';
+		  				temp += '<div>賣家電話：' + value['seller_phone']+'</div>';
+		  				temp += '<div>狀態：' + value['status']+'</div>';
+		  				temp += '<div>代幣：' + value['token'] + '</div></footer>';
+		  				temp += '<a href="javascript: updateSuccess(' + value['help_id'] + ');"><button id="check" style="margin:10px;" class="btn btn-outline-success " type="button">取物成功</button></a>';
+    			  		temp += '<a href="javascript: updateFail(' + value['help_id'] + ');"><button id="clean" style="margin:10px;" class="btn btn-outline-danger " type="button">取物失敗</button></a>';
+		  				
+		  				temp += '</div>';
+		  				temp += '<div class="card-footer text-muted">幫助時間：' + value['start_time'] + '</div>';
+       			  		temp += '</div></div>';
+                   	}
+                   	
+		  			})                
+		  			inner_html = temp;
+	  	     		
+	  
+	 				 $('#oder_panel').append(inner_html);
+                }
+                
+             	$("#clean").click(function () {
+                	console.log("[@Action]退回幫助");
+                	deleteHelp(help_id);
+                });
+            	$("#check").click(function () {
+                	console.log("[@Action]確認許願");
+                	updateHelp(help_id);
+                	
+                });
+                
+            	
+            	
+            	function updateHelp(help_id) {
+                    var check = window.confirm("親，確認許願？");
+                    if (check == true) {
+                        console.log("You pressed OK!");
+                        var request = {'id': help_id, 'type': from};   //物件(key,value)
+                        var data_string = JSON.stringify(request);   //JSON.stringify()把javascript轉成json
+                        $.ajax({
+                            type: "PUT",
+                            url: "api/help.do",
+                            data: data_string,
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    $("#flashMessage").html("成功! 親，已經成功許願...");
+                                    $("#flashMessage").show();
+                                    //getAllWish();
+                                    //getphonenumber;
+                                }
+                                console.log(response);
+                                location.href="mywish.html";
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                        });
+                    }
+                    else {
+                        console.log("You pressed Cancel!");
+                    }
+                }
+            	
+				
+            	function updateSuccess(help_id) {
+                    var cancel = window.confirm("親，確定取物成功嗎？");
+                    	if (cancel == true) {
+                            console.log("You pressed OK!");
+                            var request = {'id': help_id, 'type': from};   //物件(key,value)
+                            var data_string = JSON.stringify(request);   //JSON.stringify()把javascript轉成json
+                            $.ajax({
+                                type: "PUT",
+                                url: "api/help.do",
+                                data: data_string,
+                                crossDomain: true,
+                                cache: false,
+                                dataType: 'json',
+                                timeout: 5000,
+                                success: function (response) {
+                                    if(response.status == 200){
+                                        $("#flashMessage").html("成功! 親，取物成功...");
+                                        $("#flashMessage").show();
+                                        //getAllWish();
+                                        //getphonenumber;
+                                    }
+                                    console.log(response);
+                                    location.href="mywish.html";
+                                },
+                                error: function () {
+                                    alert("無法連線到伺服器！");
+                                }
+                            });
+                        }
+                        else {
+                            console.log("You pressed Cancel!");
+                        }
+                                        
+                }
+            	
+            	function updateFail(help_id) {
+                    var clean = window.confirm("親，確定取物失敗嗎QQ？");
+                    if (clean == true) {
+                        console.log("You pressed OK!");
+                        var request = {'id': help_id, 'type': "取物失敗"};   //物件(key,value)
+                        var data_string = JSON.stringify(request);   //JSON.stringify()把javascript轉成json
+                        $.ajax({
+                            type: "PUT",
+                            url: "api/help.do",
+                            data: data_string,
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    $("#flashMessage").html("成功! 親，取物失敗...");
+                                    $("#flashMessage").show();
+                                    //getAllWish();
+                                    //getphonenumber;
+                                }
+                                location.href="mywish.html";
+                                console.log(response);
+                                
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                        });
+                    }
+                    else {
+                        console.log("You pressed Cancel!");
+                    }
+                }
+            	
+            	//登出
+				function sign_out(){
+					if(getCookie("member_id")== ""){
+                    	alert("親!您還沒有登入過ㄛ");
+                	}
+                	else{	
+                	delCookie("member_id");
+                	delCookie("managerOrNot");
+                	location.href="login.html"
+                	alert("已登出!");
+                	
+                	}
+             	}
+                
+                $(document).ready(function() {
+                	getHelpByID(help_id);
+                    var $form2 = $('#sign_out');
+                    $form2.click(function() {
+                    	sign_out();
+                    });
+                });
+            </script>
+</body>
+
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>管理會員 | 二手物交換</title>
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <!--<link rel="stylesheet" type="text/css" href="statics/css/cake.generic.css">  -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+
+    <script src="statics/js/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body style="background-color:black; color:white; margin:50px;">
+    <div id="container">
+        <div id="header">
+         
+        </div>
+        <div id="content">
+            <h2>會員清單</h2>
+             <a href="product.html"style="color:white;">首頁</a>>>
+            <a href="managerhomepage.html"style="color:white;">管理員專區</a>>>管理會員
+
+            <div id="flashMessage" class="message" style="display: none;"></div>
+
+            <table id="table" class="table table-dark table-striped" style=" margin:20px;">
+                <thead>
+                    <tr>
+                        <th>編號</th>
+                        <th>帳號名稱</th>
+                        <th>電子郵件</th>
+                        <th>手機</th>
+                        <th>代幣總額</th>
+                        <th>停權與否</th>
+                        <th>是否為管理員</th>
+                        <th>功能</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <script type="text/javascript">
+            
+                // 全域變數紀錄SQL指令下的次數
+                var sql_num = 0;
+                function deleteMember(id) {
+                    var check = window.confirm("確認刪除會員？");
+                    if (check == true) {
+                        console.log("You pressed OK!");
+                        var request = {'id': id};
+                        var data_string = JSON.stringify(request);
+                        $.ajax({
+                            type: "DELETE",
+                            url: "api/member.do",
+                            crossDomain: true,
+                            data: data_string,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    $("#flashMessage").html("成功! 已經成功刪除會員...");
+                                    $("#flashMessage").show();
+                                    getAllMember();
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                        });
+                    }
+                    else {
+                        console.log("You pressed Cancel!");
+                    }
+                }
+
+                function getAllMember() {
+                    // 發出POST的GET請求取得所有會員列表
+                    $.ajax({
+                            type: "GET",
+                            url: "api/member.do",
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    updateTable(response.response.data);
+                                    //updateSQLTable(response.response);
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                    });
+                }
+                
+                // 更新會員列表表格
+                function updateTable(data) {
+                    $("#table > tbody").empty();
+                    var table_html = '';
+                    $.each(data, function(index, value) {
+              
+                        table_html += '<tr><td scope="row">' + value['id'] + '</td>';
+                        table_html += '<td>' + value['name'] + '</td>';
+                        table_html += '<td>' + value['email'] + '</td>';
+                        table_html += '<td>' + value['phoneNumber'] + '</td>';
+                        table_html += '<td>' + value['token_amount'] + '</td>';
+                        table_html += '<td>' + value['status'] + '</td>';
+                        table_html += '<td>' + value['managerOrNot'] + '</td>';
+						var id = getCookie("member_id");
+                        if(id==1 ||value['id']!=1 )
+                        {table_html += '<td>' + '<a style="color:#FFFFBB;" href="editByManager.html?id=' + value['id'] + '">編輯</a>  ';}
+                        else{table_html += '<td>'+'</td>'};
+                        
+                        if(value['id']!= id && value['id']!=1)
+                        {table_html += '|'+'<a style="color:#FFFFBB;" href="javascript: deleteMember(' + value['id'] + ');">刪除</a></td></tr>';}
+                    })
+
+                    $("#table > tbody").append(table_html);
+                }
+                
+                // 更新SQL指令歷史表格
+                function updateSQLTable(data) {
+                    $("#sql_log > tbody").empty();
+                    var time = (data.time / 1000000).toFixed(2);
+                    var table_html = "";
+                    
+                    sql_num = 0;
+                    sql_num += 1
+
+                    table_html += '<tr>';
+                    table_html += '<td>' + sql_num + '</td>';
+                    table_html += '<td>' + data.sql + '</td>';
+                    table_html += '<td style="text-align: right">' + '0' + '</td>';
+                    table_html += '<td style="text-align: right">' + data.row + '</td>';
+                    table_html += '<td style="text-align: right">' + data.row + '</td>';
+                    table_html += '<td style="text-align: right">' + time + '</td>';
+                    table_html += '</tr>';
+                    $("#sql_log > tbody").append(table_html);
+                    $("#sql_summary").html("(default) " + data.row + " queries took " + time + " ms");
+                }
+                $(document).ready(function() {
+                    getAllMember();
+                });
+                
+              //取cookies函式  
+            	function getCookie(cname) {
+				  var name = cname + "=";
+				  var decodedCookie = decodeURIComponent(document.cookie);
+				  var ca = decodedCookie.split(';');
+				  for(var i = 0; i <ca.length; i++) {
+				    var c = ca[i];
+				    while (c.charAt(0) == ' ') {
+				      c = c.substring(1);
+				    }
+				    if (c.indexOf(name) == 0) {
+				      return c.substring(name.length, c.length);
+				    }
+				  }
+				  return "";
+				}
+            </script>
+        </div>
+        <div id="footer">
+           
+        </div>
+    </div>
+    
+</body>
+
+</html>

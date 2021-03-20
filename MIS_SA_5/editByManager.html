@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>會員資料編輯｜二手物交換</title>
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <link rel="stylesheet" type="text/css" href="statics/css/cake.generic.css">
+
+    <script src="statics/js/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body style="background-color:black;color:white; margin:30px;">
+    <div id="container">
+        <div id="header">
+           
+        </div>
+        <div id="content"style=" background-color:black;color:white;">
+            <h2 style=" background-color:black;color:#FF7575;font-weight:bold;">更新會員資料</h2>
+            <a style="color:white; font-size:16px;"href="product.html">首頁</a>
+            <a style="color:white; font-size:16px;"href="index.html">會員清單</a>
+            
+
+            <div id="flashMessage" class="message" style="display: none;"></div>
+
+            <form id="form" accept-charset="utf-8"style="background-color:black;">
+                <div style="display:none;"><input type="hidden" name="_method" value="POST"></div>
+                <div class="input text required">
+                    <label style="color:white; font-size:14px;"for="member_name">帳號名稱</label>
+                    <input style="background-color:	#9D9D9D;"name="name" maxlength="30" type="text" id="member_name" disabled>
+                </div>
+                <div class="input email required">
+                    <label style="color:white; font-size:14px;"for="member_email">電子郵件</label>
+                    <input style="background-color:	#9D9D9D;"name="email" maxlength="50" type="email" id="member_email"  disabled>
+                </div>
+                <div class="input text">
+                    <label style="color:white; font-size:14px;"for="member_login_times">手機</label>
+                    <input style="background-color:	#9D9D9D;"name="phoneNumber" type="text" id="member_phoneNumber" disabled >
+                </div>
+                <div class="input text">
+                    <label style="color:white; font-size:14px;"for="member_status">代幣總額</label>
+                    <input style="background-color:	#9D9D9D;"name="token" type="text" id="member_token" disabled>
+                </div>
+                <div class="input text">
+                    <label style="color:white; font-size:14px;"for="member_status">停權與否</label>
+                    <input style="background-color:	#DDDDDD;"name="status" type="text" id="member_status" required="required">
+                </div>
+                <div class="input text">
+                    <label style="color:white; font-size:14px;"for="member_status">是否為管理員</label>
+                    <input style="background-color:	#DDDDDD;"name="member_managerOrNot" type="text" id="member_managerOrNot" required="required">
+                </div>
+                <div class="submit"><input type="button" value="更新" id="submit"></div>
+            </form>
+
+            <script type="text/javascript">
+                // 取得網址參數
+                var url_string = window.location.href;
+                var url = new URL(url_string);
+                var id = url.searchParams.get("id");
+                var sql_num = 0;
+
+                function updateMember(id) {
+                    var name = $('#member_name').val();
+                    var email = $('#member_email').val();
+                    var phoneNumber = $('#member_phoneNumber').val();
+                    var token_amount = $('#member_token').val();
+                    var status = $('#member_status').val();
+                    var managerOrNot = $('#member_managerOrNot').val();
+
+                    var name_rule = /^(?=.*[A-Za-z])[A-Za-z\d]{5,}$/;
+                    var password_rule = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+                    var phone_rule = /^09\d{2}-\d{3}-\d{3}$/;
+
+                   
+                    // 將資料組成JSON格式
+                    var data_object = {
+                        "id": id,
+                        "name": name,
+                        "email": email,
+                        "phoneNumber": phoneNumber,
+                        "token_amount": token_amount,
+                        "status": status,
+                        "managerOrNot": managerOrNot
+                    };
+
+                    // 將JSON格式轉換成字串
+                    var data_string = JSON.stringify(data_object);
+
+                    // 發出POST的PUT請求
+                    $.ajax({
+                            type: "PUT",
+                            url: "api/manager.do",
+                            data: data_string,
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                $('#flashMessage').html(response.message);
+                                $('#flashMessage').show();
+                                if(response.status == 200){
+                                    
+                                    getMember();
+                                }
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                    });
+                }
+               
+
+                
+
+                function getMember() {
+                    $.ajax({
+                        type: "GET",
+                        url: "api/member.do",
+                        crossDomain: true,
+                        data: "id=" + id,
+                        cache: false,
+                        dataType: 'json',
+                        timeout: 5000,
+                        success: function (response) {
+                            if(response.status == 200){
+                            	
+                            	document.getElementById('member_name').value = response['response']['data'][0]['name'];
+                            	document.getElementById('member_email').value = response['response']['data'][0]['email'];
+                            	document.getElementById('member_phoneNumber').value = response['response']['data'][0]['phoneNumber'];
+                            	document.getElementById('member_token').value = response['response']['data'][0]['token_amount'];
+                            	document.getElementById('member_status').value = response['response']['data'][0]['status'];
+                            	document.getElementById('member_managerOrNot').value = response['response']['data'][0]['managerOrNot'];
+                            }
+                            console.log(response);
+                        },
+                        error: function () {
+                            alert("無法連線到伺服器！");
+                        }
+                    });
+                }
+
+                $('#submit').click(function() {
+                    updateMember(id)
+                });
+                
+                $(document).ready(function() {
+                	// 發出GET的AJAX請求取得原本該會員的資料
+                 	$("#sql_log > tbody").empty();
+                    getMember();
+                });
+            </script>
+        </div>
+        <div id="footer">
+           
+        </div>
+    </div>
+
+    <table class="cake-sql-log" id="sql_log" summary="Cake SQL Log" cellspacing="0">
+        
+        <tbody>
+        </tbody>
+    </table>
+</body>
+
+</html>

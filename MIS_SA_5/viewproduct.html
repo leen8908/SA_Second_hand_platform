@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+  <meta name="generator" content="Jekyll v3.8.5">
+
+  <title>查看商品 ｜ 二手物交換平台</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="statics/css/bootstrap.min.css" rel="stylesheet">
+  <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+  <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+
+
+  <style>
+    .bd-placeholder-img {
+      font-size: 1.125rem;
+      text-anchor: middle;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    @media (min-width: 768px) {
+      .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+      }
+    }
+  </style>
+  <!-- Custom styles for this template -->
+  <link href="statics/css/product.css" rel="stylesheet">
+
+  <script src="statics/js/jquery-3.4.1.min.js"></script>
+</head>
+
+<body>
+<div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+    <h5 class="my-0 mr-md-auto font-weight-normal">二手物交換平台</h5>
+    <nav class="my-2 my-md-0 mr-md-3">
+      	<a class="p-2 text-dark" href="product.html">首頁</a>
+    	<a class="p-2 text-dark" href="product.html">一般物品列表</a>
+      	<a class="p-2 text-dark" href="memberhomepage.html">會員專區</a>
+      	<input type="button" class="btn btn-outline-secondary" value="登出" id="sign_out">
+    </nav>
+  </div>
+	
+		<div id="header">
+			
+		</div>
+		
+			<div  style="margin:25px;margin-left:70px; padding:10px;">
+				
+				<div id="flashMessage" class="message" style="display: none;"></div>
+				<div id='order_panel' ></div>
+			</div>
+			
+	<script type="text/javascript">
+	
+	
+	
+
+				// 取得網址參數
+                var url_string = window.location.href;
+                var url = new URL(url_string);
+                var id_list = url.searchParams.get("exchangedProduct_id");
+                var type = url.searchParams.get("type");
+                var sql_num = 0;
+                
+                
+                
+				
+                
+                
+
+                function getProductByID(id_list) {
+                    // 發出POST的GET請求取得所有申請列表
+                    $.ajax({
+                            type: "GET",
+                            url: "api/PController.do",
+                            data: {
+                                'id_list': id_list
+                                
+                            },
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    updateHTML(response.response.data);//response回來
+                                    
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                    });
+                }
+                
+                // 更新申請畫面
+             	function updateHTML(data) {
+		     		var inner_html = '';
+	  	     		var temp = '';
+	  	     		$('#order_panel').empty;
+	  	     		$.each(data, function(index, value) {
+	  	     			
+	  	     			//mean_of_transaction = value['mean_of_transaction'];
+	  	     			//exchangedProduct_name =  value['exchangedProduct_name'];
+	  	     			
+	  	     		//之後要加cookie抓selectproduct選的商品exchangedProduct_name	
+                   	
+                     if(type == "申請"){
+                    	 
+		  				//temp ='<h1><a href="home.html">首頁</a> >  <a href="member.html">會員專區</a> >  <a href="otherapplication.html">查看他人申請</a> > 訂單詳情<h1>';
+		  				temp ='<a href="home.html">首頁</a> >  <a href="memberhomepage.html">會員專區</a> ><a href="myapplication.html">查看我的申請</a> > <a href="javascript:backToLastPage();">訂單詳情'
+		  				//temp += '</div>';
+		  				temp +='<div class="album py-5 bg-light">';
+   						temp +='<div class="card text-center">';
+   						
+   						temp += '<div class="card-header mb-1 text-muted">'+ value['category'] + '</div>';
+   						
+   						temp +='<div class="card-body">';
+   						temp += '<h1 class="card-title">' + value['name'] + '</h1>';
+   						temp += '<div class="text-muted">商品編號：'+ value['id']+'</div>';
+ 		  				temp += '<p class="card-text">描述：' + value['describtion'] + '</p>';
+ 		  				temp += '</div>';
+ 		  				
+ 		  				temp += '<div class="card-footer text-muted">上架日期：' + value['add_time'] +'</div>';
+ 		  				temp += '</div></div>';
+		  				
+                     }	
+                     else{
+                    	 
+                    	//temp ='<h1><a href="home.html">首頁</a> >  <a href="member.html">會員專區</a> >  <a href="otherapplication.html">查看他人媒合</a> > 訂單詳情<h1>';
+                    	temp ='<a href="home.html">首頁</a> >  <a href="memberhomepage.html">會員專區</a> >  <a href="mymatch.html">查看我的媒合</a> >  <a href="javascript:backToLastPage();">媒合詳情</a>';
+                    	//temp += '</div>';
+                    	temp +='<div class="album py-5 bg-light">';
+    					temp +='<div class="card text-center">';
+    					temp += '<div class="card-header mb-1 text-muted">'+ value['category'] + '</div>';
+    					temp +='<div class="card-body">';
+    					temp += '<h1 class="card-title">' + value['name'] + '</h1>';
+    					temp += '<div class="text-muted">商品編號：'+ value['id']+'</div>';
+  		  				temp += '<p class="card-text">描述：' + value['describtion'] + '</p>';
+  		  				
+  		  				temp += '</div>';
+  		  				temp += '<div class="card-footer text-muted">上架日期：' + value['add_time'] +'</div>';
+  		  				temp += '</div></div>';
+                    	 
+                    	 
+                     }
+		  				
+		  			
+                   		
+                   	
+		  			})                
+		  			inner_html = temp;
+	  	     		
+	  
+	 				 $('#order_panel').append(inner_html);
+                }
+                
+             	 function backToLastPage(){
+             		 
+             		window.history.back(-1);
+             		 
+             	 }
+            	
+            	
+             	//登出
+ 				function sign_out(){
+ 					if(getCookie("member_id")== ""){
+                     	alert("親!您還沒有登入過ㄛ");
+                 	}
+                 	else{	
+                 	delCookie("member_id");
+                 	delCookie("managerOrNot");
+                 	location.href="login.html"
+                 	alert("已登出!");
+                 	
+                 	}
+              	}
+                 
+                 $(document).ready(function() {
+                	 getProductByID(id_list);
+                     var $form2 = $('#sign_out');
+                     $form2.click(function() {
+                     	sign_out();
+                     });
+                 });
+               
+                
+            </script>
+	
+</body>
+
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css"
+	href="statics/css/cake.generic.css">
+<script src="statics/js/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+	<div id="container">
+		<div id="header">
+			<h2>
+				會員專區
+			</h2>
+		</div>
+		<div id="content">
+			
+			<a href="home.html">首頁</a> >  <a href="memberArea.html">會員專區</a>
+			<div id='order_panel' ></div>
+		<div>
+			<a href="myhelp.html"><button type="button" class="btn btn-outline-secondary">查看我的幫助</button></a>
+            <a href="otherhelp.html"><button type="button" class="btn btn-outline-secondary">查看他人幫助</button></a>
+            <a href="myapplication.html"><button type="button" class="btn btn-outline-secondary">查看我的申請</button></a>
+            <a href="otherapplication.html"><button type="button" class="btn btn-outline-secondary">查看他人申請</button></a>
+            <a href="mywish.html"><button type="button" class="btn btn-outline-secondary">查看許願</button></a>
+		</div>
+			
+	<script type="text/javascript">
+	
+	
+	
+
+// 取得網址參數
+				//設定cookies
+                	function setCookie(cname, cvalue,exdays) {
+					  var d = new Date();
+					  d.setTime(d.getTime() + (exdays*24*60*60*1000));
+					  var expires = "expires="+ d.toUTCString();
+					  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+					}
+                	//取cookies函式  
+                	function getCookie(cname) {
+					  var name = cname + "=";
+					  var decodedCookie = decodeURIComponent(document.cookie);
+					  var ca = decodedCookie.split(';');
+					  for(var i = 0; i <ca.length; i++) {
+					    var c = ca[i];
+					    while (c.charAt(0) == ' ') {
+					      c = c.substring(1);
+					    }
+					    if (c.indexOf(name) == 0) {
+					      return c.substring(name.length, c.length);
+					    }
+					  }
+					  return "";
+					}
+                	//刪除cookie
+                	function delCookie(name){
+                	  document.cookie = name +"= ;expires=Thu, 01 Jan 1970 00:00:00 UTC ;path=/";
+                	}
+                	console.log(document.cookie);
+                	
+                	var member_id = getCookie("member_id");
+                	
+                    function getAll() {
+                    	
+                    	// 將資料組成JSON格式
+                       /* var data_object = {
+                            'member_id': member_id
+                        };*/
+                       // var data_string = JSON.stringify(data_object);
+                        // 發出POST的GET請求取得所有申請列表
+                        $.ajax({
+                                type: "GET",
+                                url: "api/login.do",
+                                data: {
+                                    'id': member_id
+                                },
+                                crossDomain: true,
+                                cache: false,
+                                dataType: 'json',
+                                timeout: 5000,
+                                success: function (response) {
+                                    if(response.status == 200){
+                                        updateTable(response.response.data);//response回來
+                                        
+                                    }
+                                    console.log(response);
+                                },
+                                error: function () {
+                                    alert("無法連線到伺服器！");
+                                }
+                        });
+                    }
+                	
+                	
+                	// 更新會員專區畫面
+                	function updateHTML(data) {
+    		     		var inner_html = '';
+    	  	     		var temp = '';
+    	  	     		$.each(data, function(index, value) {
+                       	if(member){
+    		  				temp = '<div >會員姓名：'+ value['name'];
+    		  				temp = '<div >會員姓名：'+ value['token_amount'];
+    		  				
+    		  				temp += '</div></div>';
+    		  			}
+                       	
+    		  			})               
+    		  			inner_html = temp;
+    	  	     		
+    	  
+    	 				 $('#order_panel').append(inner_html);
+                    }
+            </script>
+		</div>
+		
+	</div>
+	
+</body>
+
+</html>

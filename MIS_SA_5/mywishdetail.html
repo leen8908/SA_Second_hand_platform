@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+   
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <link rel="stylesheet" type="text/css" href="statics/css/cake.generic.css">
+	<title>許願資料詳情 | 二手物交換</title>
+    <script src="statics/js/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+	<div id="container">
+		<div id="header">
+		</div>
+		<div id="content">
+			<h2>許願資料詳情</h2>
+            <a href="product.html">首頁</a>>>
+            <a href="memberhompage.html">會員專區</a>>>
+			<a href="mywiah.html">查看我的許願</a>>>許願資料詳情
+			<div id='oder_panel' ></div>
+		<div>
+			<button id="check" class="btn btn-primary btn-lg btn-block"
+						type="button" >確認許願</button>
+					<button id="clean" class="btn btn-dark btn-lg btn-block"
+						type="button">退回幫助</button>
+		</div>
+			
+	<script type="text/javascript">
+	
+	
+	
+
+// 取得網址參數
+                var url_string = window.location.href;
+                var url = new URL(url_string);
+                var help_id = url.searchParams.get("help_id");
+                var from = url.searchParams.get("from");
+                var sql_num = 0;
+		
+                function deleteHelp(help_id) {
+                    var check = window.confirm("確認取消幫助？");
+                    if (check == true) {
+                        console.log("You pressed OK!");
+                        var request = {'id': id};   //物件(key,value)
+                        var data_string = JSON.stringify(request);   //JSON.stringify()把javascript轉成json
+                        $.ajax({
+                            type: "DELETE",
+                            url: "api/help.do",
+                            crossDomain: true,
+                            data: data_string,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    $("#flashMessage").html("成功! 已經成功取消幫助...");
+                                    $("#flashMessage").show();
+                                    getAllHelp();
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                        });
+                    }
+                    else {
+                        console.log("You pressed Cancel!");
+                    }
+                }
+                
+
+                function getHelpByID(help_id) {
+                    // 發出POST的GET請求取得所有申請列表
+                    $.ajax({
+                            type: "GET",
+                            url: "api/help.do",
+                            data: {
+                                'id': help_id,
+                                'from': from
+                            },
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    updateHTML(response.response.data);//response回來
+                                    
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                            
+                    });
+                }
+                
+                // 更新申請畫面
+             	function updateHTML(data) {
+		     		var inner_html = '';
+	  	     		var temp = '';
+	  	     		$.each(data, function(index, value) {
+                   	if(from == "許願者"){
+		  					temp += '<div >訂單編號：'+ value['order_id'];
+		  					temp += '<div >賣家：' + value['seller_name'];
+		  					temp += '<div >	幫助日期：' + value['start_time'];
+		  					temp += '<div >	狀態：' + value['status'];
+		  					temp += '<div class="col p-4 d-flex flex-column position-static">';
+			  				temp += '<strong class="d-inline-block mb-2 text-primary">欲幫助商品：' + value['product_name'] + '</strong>';
+			  				temp += '<h3 class="mb-0"><span class="p-2">類別：' +value['category'] + '</span>';
+			  				temp += '<span>描述：' + value['description'] + '</span></h3>';
+			  				temp += '<hr/>';
+			  				temp += '<div class="mb-1 text-muted">代幣：' + value['token'] + '</div>';
+			  				//temp += '<p class="card-text mb-auto"><button id="view" name="remove[]" type="button" class="btn btn-danger">瀏覽對方商品</button></p>';
+			  				temp += '<img src="statics/img/product/' + value['image'] + ' width="70%">';
+			  				temp += '</div></div>';
+                   	
+					}
+                   	else{
+                   		
+    		  				temp = '<div >訂單編號：'+ value['order_id'] + '		許願者：' + value['wisher_name'] + '		幫助日期：' + value['start_time'] + '	狀態：' + value['status'];
+    		  				temp += '<div class="col p-4 d-flex flex-column position-static">';
+    			  			temp += '<strong class="d-inline-block mb-2 text-primary">欲幫助商品：' + value['product_name'] + '</strong>';
+    			  			temp += '<h3 class="mb-0"><span class="p-2">類別：' +value['category'] + '</span>';
+    			  			temp += '<span>描述：' + value['description'] + '</span></h3>';
+    			  			temp += '<hr/>';
+    			  			temp += '<div class="mb-1 text-muted">代幣：' + value['token'] + '</div>';
+    			  			//temp += '<p class="card-text mb-auto"><button id="view" name="remove[]" type="button" class="btn btn-danger">瀏覽對方商品</button></p>';
+    			  				
+    			  			temp += '</div></div>';
+
+    		  				
+                   		
+                   	}
+		  			})                
+		  			inner_html = temp;
+	  	     		
+	  
+	 				 $('#oder_panel').append(inner_html);
+                }
+                
+             $("#clean").click(function () {
+                	console.log("[@Action]退回幫助");
+                	deleteHelp(help_id);
+                });
+            	$("#check").click(function () {
+                	console.log("[@Action]確認許願");
+                	updateHelp(help_id);
+                });
+                
+               
+                $(document).ready(function() {
+                    getHelpByID(help_id);
+                });
+            </script>
+		</div>
+		
+	</div>
+	
+</body>
+
+</html>

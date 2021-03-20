@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+   
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <!--<link rel="stylesheet" type="text/css" href="statics/css/cake.generic.css">  -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+	<title>一般/期望物品管理 | 二手物交換</title>
+    <script src="statics/js/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body style="background-color:black; color:white; margin:50px;">
+    <div id="container">
+        <div id="header">
+         </div>
+        <div id="content">
+            <h2>一般/期望物品管理</h2>
+            <a href="product.html"style="color:white;">首頁</a>>>
+            <a href="managerhomepage.html"style="color:white;">管理員專區</a>>>管理一般/期望物品
+			
+
+            <div id="flashMessage" class="message" style="display: none;"></div>
+
+            <table id="table"class="table table-dark table-striped" style=" margin:20px;">
+                <thead>
+                    <tr>
+                        <th>編號</th>
+                        <th>商品名稱</th>
+                        <th>類別</th>
+                        <th>描述</th>
+                        <th>代幣</th>
+                        <th>地區</th>
+                        <th>是否為期望物品</th>
+                        <th>是否已下架狀態</th>
+                        <th>功能</th>
+                           
+                        
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <script type="text/javascript">
+                // 全域變數紀錄SQL指令下的次數
+                
+                var sql_num = 0;
+                
+                function downProduct(id) {
+                    var check = window.confirm("確認下架商品？");
+                    if (check == true) {
+                        console.log("You pressed OK!");
+                        var request = {'id': id};
+                        var data_string = JSON.stringify(request);
+                        $.ajax({
+                            type: "PUT",
+                            url: "api/status.do",
+                            crossDomain: true,
+                            data: data_string,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    $("#flashMessage").html("成功! 已經成功更新商品狀態...");
+                                    $("#flashMessage").show();
+                                    getAllProduct();
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                        });
+                    }
+                    else {
+                        console.log("You pressed Cancel!");
+                    }
+                }
+                
+
+                function getAllProduct() {
+                    // 發出POST的GET請求取得所有商品列表
+             	  var manageOrNot=getCookie('managerOrNot');
+                    $.ajax({
+                            type: "GET",
+                            url: "api/PController.do",
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            data: { managerOrNot_list:manageOrNot },
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    updateTable(response.response.data);
+                                    
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                    });
+                }
+                
+                
+                
+                
+              //取cookies函式  
+            	function getCookie(cname) {
+				  var name = cname + "=";
+				  var decodedCookie = decodeURIComponent(document.cookie);
+				  var ca = decodedCookie.split(';');
+				  for(var i = 0; i <ca.length; i++) {
+				    var c = ca[i];
+				    while (c.charAt(0) == ' ') {
+				      c = c.substring(1);
+				    }
+				    if (c.indexOf(name) == 0) {
+				      return c.substring(name.length, c.length);
+				    }
+				  }
+				  return "";
+				}
+              
+            	 
+            	// 更新商品列表表格
+                function updateTable(data) {
+                	
+                    $("#table > tbody").empty();
+                    var table_html = '';
+                    $.each(data, function(index, value) {
+                        table_html += '<tr><td scope="row">' + value['id'] + '</td>';
+                        table_html += '<td>' + value['name'] + '</td>';
+                        table_html += '<td>' + value['category'] + '</td>';
+                        table_html += '<td>' + value['describtion'] + '</td>';
+                        table_html += '<td>' + value['token'] + '</td>';
+                        table_html += '<td>' + value['area'] + '</td>';
+                        table_html += '<td>' + value['expectedProductOrNot'] + '</td>';
+                        table_html += '<td>' + value['status'] + '</td>';
+                        table_html += '<td>';
+                        table_html += '<a style="color:#FFFFBB;" href="javascript: downProduct(' + value['id'] + ');">下架</a></td></tr>';
+                    })
+
+                    $("#table > tbody").append(table_html);
+                }
+                $(document).ready(function() {
+                    getAllProduct();
+                   
+                });
+            </script>
+        </div>
+        <div id="footer">
+            
+        </div>
+    </div>
+    <table class="cake-sql-log" id="sql_log" summary="Cake SQL Log" cellspacing="0">
+       
+        <tbody>
+        </tbody>
+    </table>
+</body>
+
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>新增期望物品 | 二手物交換</title>
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+   	<link rel="stylesheet" type="text/css" href="statics/css/cake.generic.css">
+	
+    <script src="statics/js/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body style="background-color:black;color:white; margin:30px;">
+    <div id="container">
+        <div id="header">
+           
+        </div>
+        
+        <div id="content" style=" background-color:black;color:white;">
+            <h2 style=" background-color:black;color:#FF7575;font-weight:bold;">新增期望商品</h2>
+            <a style="color:white; font-size:16px;"href="product.html">首頁</a>>>
+            <a style="color:white; font-size:16px;"href="memberhomepage.html">會員專區</a>>>
+            <a style="color:white; font-size:16px;"href="personalEProduct.html">我的期望物品</a>>>新增期望物品
+            
+            <div id="flashMessage" class="message" style="display: none;"></div>
+
+            <form id="form" accept-charset="utf-8"style="background-color:black;">
+                <div style="display:none;"><input type="hidden" name="_method" value="POST"></div>
+                <div class="input text required">
+                    <label style="color:white; font-size:14px;"for="product_name">期望商品名稱</label>
+                    <input style="background-color:	#DDDDDD;"name="name" maxlength="30" type="text" id="product_name"required="required">
+                </div>
+                <div class="input category required">
+                    <label style="color:white; font-size:14px;" for="product_category">商品類別</label>
+						<select name="product_category" id="category" required="required">
+						　<option value="live ">生活用品</option>
+						　<option value="cos">美妝用品</option>
+						　<option value="transportation">交通工具</option>
+						　<option value="other ">其他</option>
+						</select>				
+                </div>
+               <div class="input text required">
+                    <label style="color:white; font-size:14px;"for="product_describtion">希望的樣子</label>
+                    <textarea style="background-color:	#DDDDDD;"class="describtion" name = "product_describtion" rows = "10" cols="15"required="required"></textarea>
+                </div>
+                <div class="input text required">
+                    <label style="color:white; font-size:14px;"for="product_token">代幣價值</label>
+                    <input style="background-color:	#DDDDDD;"name="token" maxlength="50" type="text" id="product_token" value="10" required="required" disabled>
+                </div>
+                <div class="input text required">
+                    <label style="color:white; font-size:14px;"for="product_area">地區</label>
+                    <input style="background-color:	#DDDDDD;"name="area" maxlength="30" type="text" id="product_area" required="required">
+                </div>
+                
+                <div class="submit"><input type="button" value="新增" id="submit"></div>
+            </form>
+            
+            <script type="text/javascript">
+            $(document).ready(function() {
+            	islogin();});
+            
+                $(document).ready(function() {
+                    // 處理表單點擊事件
+                    var $form = $('#submit');
+                    $form.click(function() {
+                        submit();
+                    });
+
+                    function submit() {
+                    	var member_id =getCookie('member_id');
+                        var name = $('#product_name').val();
+                        var category = $("#category :selected").text();
+                        var describtion = $("textarea[name='product_describtion']").val();
+                        var token= $('#product_token').val();
+                        var area= $('#product_area').val();
+       
+                        if (name == "") {
+      	            	  alert("欄位請填寫完整！");
+      	              }
+                        else{
+                            // 將資料組成JSON格式
+                            var data_object = {
+                                "name": name,
+                                "category": category,
+                                "describtion": describtion,
+                                "token":token,
+                                "area":area,
+                                "member_id":member_id
+                            };
+
+                            // 將JSON格式轉換成字串
+                            var data_string = JSON.stringify(data_object);
+                        
+                            // 發出POST的AJAX請求
+                            $.ajax({
+                                    type: "POST",
+                                    url: "api/EPController.do",
+                                    data: data_string,
+                                    crossDomain: true,
+                                    cache: false,
+                                    dataType: 'json',
+                                    timeout: 5000,
+                                    success: function (response) {
+                                        $('#flashMessage').html(response.message);
+                                        $('#flashMessage').show();
+                                        if(response.status == 200){
+                                           
+                                        }
+                                    },
+                                    error: function () {
+                                        alert("無法連線到伺服器！");
+                                    }
+                            });
+                        }}
+                    
+                    //設定cookies
+                	function setCookie(cname, cvalue,exdays) {
+					  var d = new Date();
+					  d.setTime(d.getTime() + (exdays*24*60*60*1000));
+					  var expires = "expires="+ d.toUTCString();
+					  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+					}
+                	//取cookies函式  
+                	function getCookie(cname) {
+					  var name = cname + "=";
+					  var decodedCookie = decodeURIComponent(document.cookie);
+					  var ca = decodedCookie.split(';');
+					  for(var i = 0; i <ca.length; i++) {
+					    var c = ca[i];
+					    while (c.charAt(0) == ' ') {
+					      c = c.substring(1);
+					    }
+					    if (c.indexOf(name) == 0) {
+					      return c.substring(name.length, c.length);
+					    }
+					  }
+					  return "";
+					}
+                	//刪除cookie
+                	function delCookie(name){
+                	  document.cookie = name +"= ;expires=Thu, 01 Jan 1970 00:00:00 UTC ;path=/";
+                	}
+                    
+
+                  
+                  //判斷是否已經登入過
+					function islogin(){
+						//沒登入,跳回去登入畫面
+                    	if(getCookie("member_id")==""){
+                    	alert("親!登入才能新增東東");
+                    	location.href='login.html';
+                    	
+                    	}
+                 	}
+                });
+            </script>
+
+        </div>
+        
+        <div id="footer">
+            
+        </div>
+    </div>
+
+    <table class="cake-sql-log" id="sql_log" summary="Cake SQL Log" cellspacing="0">
+        
+        <tbody>
+        </tbody>
+    </table>
+
+</body>
+
+</html>

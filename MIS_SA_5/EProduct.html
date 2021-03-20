@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+  <meta name="generator" content="Jekyll v3.8.5">
+
+  <title>期望物品列表 ｜ 二手物交換</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="statics/css/bootstrap.min.css" rel="stylesheet">
+  <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+  <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+
+
+  <style>
+    .bd-placeholder-img {
+      font-size: 1.125rem;
+      text-anchor: middle;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    @media (min-width: 768px) {
+      .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+      }
+    }
+  </style>
+  <!-- Custom styles for this template -->
+  <link href="statics/css/product.css" rel="stylesheet">
+
+  <script src="statics/js/jquery-3.4.1.min.js"></script>
+</head>
+
+<body>
+  <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+    <h5 class="my-0 mr-md-auto font-weight-normal">NCU_MIS_SA_5</h5>
+      <input name="search" maxlength="30" type="text" id="search" placeholder="搜尋">
+		<div class="submit"><input type="button" value="GO!" id="submit" onclick="trigerSearch();"></div>
+    <nav class="my-2 my-md-0 mr-md-3">
+      <a class="p-2 text-dark" href="product.html">一般物品列表</a>
+      
+      <button type="button" class="btn btn-outline-primary" onclick="trigerMemberCheck();">會員專區</button>
+      <button type="button" class="btn btn-outline-primary" onclick="trigerManagerCheck();">管理員專區</button>
+      <a class="p-2 text-dark" href="login.html">登入</a>
+    </nav>
+   <div class="submit"><input type="button" class="btn btn-outline-secondary"value="登出" id="sign_out"></div>
+  </div>
+	
+  <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+    <h1 class="display-4">期望物品列表</h1>
+    <p class="lead">以下是所有物品包含其ID、品名</p>
+  </div>
+
+  <div class="album py-5 bg-light">
+    <div class="container">
+      <div id="product_panel" class="row">
+      </div>
+    </div>
+  </div>
+
+  <script>   
+  
+   var member_id = 0;
+   if(getCookie("member_id") != ""){
+	   
+	   member_id = getCookie("member_id");
+	   
+   }
+    function getAllProduct() {
+      $.ajax({
+        type: "GET",
+        url: "api/EPController.do",
+        crossDomain: true,
+        data: {'member_id' : member_id},
+        cache: false,
+        dataType: 'json',
+        timeout: 5000,
+        success: function (response) {
+          if (response.status == 200) {
+        	var product_panel = '';
+        	
+        	$.each(response.response.data, function (){
+        		product_panel += addProduct(this);
+        	})
+        	
+        	$("#product_panel").append(product_panel);
+        	
+          }
+        },
+        error: function () {
+          alert("無法連線到伺服器！");
+        }
+      });
+    }
+  //搜尋商品
+    function getbyname() {      	
+        	var product_name=getCookie("product_name");
+        	console.log(product_name);
+            $.ajax({
+                    type: "GET",
+                    url: "api/EPController.do",
+                    crossDomain: true,
+                    cache: false,
+                    data: {product_name_list:product_name,  'member_id' : member_id} ,
+                    dataType: 'json',
+                    timeout: 5000,
+                    success: function (response) {
+                      if (response.status == 200) {
+                    	var product_panel = '';
+                    	
+                    	$.each(response.response.data, function (){
+                    		product_panel += addProduct(this);
+                    	})
+                    	
+                    	$("#product_panel").append(product_panel);
+                    	
+                    	delCookie("product_name");
+                    	
+                      }
+                    },
+                    error: function () {
+                      alert("無法連線到伺服器！");
+                    }
+                  });
+        }
+  
+    
+    function addProduct(data) {
+    	let inner_html = '';
+    	inner_html += '<div class="col-md-4">';
+   		inner_html += '<div class="card-header">';
+   		inner_html += '<h4 class="font-weight-normal text-center text-truncate">' + data.name + '</h4>';
+ 		inner_html += '</div>';
+ 		inner_html += '<div class="card mb-4 shadow-sm">';
+		inner_html += '<div class="card-body">';
+		inner_html += '<h4 class="card-title pricing-card-title">您可獲取的代幣:' + data.token + ' <small class="text-muted">/個 </small></h4>';
+		inner_html += '<p class="card-text">' + "產品分類: "+ data.category + '</p>';
+		inner_html += '<p class="card-text">' + "想要的模樣: "+ data.describtion + '</p>';
+		inner_html += '<p class="card-text">' + "產品area: "+ data.area + '</p>';
+		inner_html += '<p class="card-text">' + "許願者: "+ data.owner_name +'</p>';
+		inner_html += '<div class="d-flex justify-content-between align-items-center">';
+		inner_html += '<div class="btn-group">';;
+		inner_html += '<a href="javascript: addhelp(' + data.id +','+data.token+','+data.member_id+ ');"><button type="button" name="apply" class="btn btn-lg btn-block btn-outline-primary" id='+data.id+' ">'+"HELP"+'</button></a>'
+		inner_html += '</div><small class="text-muted">ID' + data.id + '</small>';
+		inner_html += '</div></div></div></div>';
+    	
+		return inner_html;
+    }
+	$(document).ready(function() {
+		if(getCookie("product_name")!=""){
+    		console.log(getCookie("product_name"));
+        	getbyname();
+    		}
+    	else{	
+	        getAllProduct();
+    	}
+
+    });
+    
+	//新增help
+	function addhelp(id,token,member_id) {
+		 var seller_id = getCookie("member_id");
+		 var request = {'product_id': id, 
+				 'seller_id':seller_id,
+				 'wisher_id':member_id,
+				 'token':token };
+		 var data_string = JSON.stringify(request);
+             // 將JSON格式轉換成字串
+	
+             // 發出POST的AJAX請求
+             $.ajax({
+                     type: "POST",
+                     url: "api/help.do",
+                     data: data_string,
+                     crossDomain: true,
+                     cache: false,
+                     dataType: 'json',
+                     timeout: 5000,
+                     success: function (response) {
+                         if(response.status == 200){
+                        	 $('#flashMessage').html("成功! 等待回覆");
+                             $('#flashMessage').show();
+                         }
+                         console.log(response);
+                         location.href="myhelp.html";
+                     },
+                     error: function () {
+                         alert("無法連線到伺服器！");
+                     }
+             });
+         }	
+	//檢查會員是否登入
+	 	function trigerMemberCheck() {
+			if(getCookie("member_id")!=""){
+				location.href='memberhomepage.html';
+			}
+			else{
+				alert('請先登入，不然就不要用ಠ_ಠ')
+				location.href='login.html';}
+		}
+	 	//檢查是否為管理員
+	 	function trigerManagerCheck() {
+			if(getCookie("managerOrNot")=="true" && getCookie("member_id")!=""){
+				location.href='managerhomepage.html';
+			}
+			else{
+				alert('咩噗இ௰இ 您沒有管理員權限!')
+				}
+		}
+	 	//搜尋商品
+	 	function trigerSearch() {
+	 		var search = $('#search').val();
+	 		setCookie("product_name", search,1) ;
+	 		var parameter= getCookie("product_name");
+	 		
+			if(getCookie("product_name")==""){
+				alert("親,要填好才可以搜尋喔!");
+			}
+			else{
+	     		
+	     		window.location.reload(" EProduct.html ");
+	 		}
+		}
+	 	//登出
+		function sign_out(){
+			if(getCookie("member_id")== ""){
+	        	alert("親!您還沒有登入過ㄛ");
+	    	}
+	    	else{	
+	    	delCookie("member_id");
+	    	delCookie("managerOrNot");
+	    	alert("已登出!");
+	    	location.href="EProduct.html"
+	    	
+	    	
+	    	}
+	 	}
+	 	 //設定cookies
+		function setCookie(cname, cvalue,exdays) {
+		  var d = new Date();
+		  d.setTime(d.getTime() + (exdays*24*60*60*1000));
+		  var expires = "expires="+ d.toUTCString();
+		  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+		}
+		//取cookies函式  
+		function getCookie(cname) {
+		  var name = cname + "=";
+		  var decodedCookie = decodeURIComponent(document.cookie);
+		  var ca = decodedCookie.split(';');
+		  for(var i = 0; i <ca.length; i++) {
+		    var c = ca[i];
+		    while (c.charAt(0) == ' ') {
+		      c = c.substring(1);
+		    }
+		    if (c.indexOf(name) == 0) {
+		      return c.substring(name.length, c.length);
+		    }
+		  }
+		  return "";
+		}
+		//刪除cookie
+		function delCookie(name){
+		  document.cookie = name +"= ;expires=Thu, 01 Jan 1970 00:00:00 UTC ;path=/";
+		}
+				
+	
+	 
+	
+	
+   
+   /*function setButtonFunction() {
+   	$('button[name="apply"]').click(function () {
+   		var action = (this.id).split('_')[0];
+   		var destination = (this.id).split('_')[1];
+   		var id = (this.id).split('_')[2];
+   		setButtonState(id,action);
+   		//addProductToCart(id);
+       });
+   }*/
+   
+   /*function getCartDataFromClient() {
+   	let cart = JSON.parse(localStorage.getItem("client_cart_obj"));
+   	let amount = JSON.parse(localStorage.getItem("client_cart_amount"));
+   	cart = !cart ? new Array() : cart;
+   	amount = !amount ? new Array() : amount;
+   	return [cart, amount];
+   }*/
+   
+  /* function addProductToCart(id) {
+   	if (!(client_cart_obj.includes(id))) {
+   		client_cart_obj.push(id);
+   		updateCartDataToClent();
+   	}
+   	
+   	checkIfExistInCart();
+   }*/
+   
+  /* function updateCartDataToClent() {
+   	localStorage.setItem("client_cart_obj", JSON.stringify(client_cart_obj));
+   	localStorage.setItem("client_cart_amount", JSON.stringify(client_cart_amount));
+   }*/
+   
+   /*function checkIfExistInCart() {
+   	$('button[name="add_cart"]').each(function (){
+   		var action = (this.id).split('_')[0];
+   		var destination = (this.id).split('_')[1];
+   		var id = (this.id).split('_')[2];
+   		if (client_cart_obj.includes(id)) {
+   			setButtonState(this.id, false);
+   		}
+   		else {
+   			setButtonState(this.id, true);
+   		}
+   		
+       });
+   }*/
+   
+  /* function setButtonState(id, action) {
+   	if (!action) {
+   	    $('#' + id).prop('disabled', true);
+   	    $('#' + id).addClass('disabled');
+   	    $('#' + id).html('已申請');
+   	}
+   	else {
+   		$('#' + id).prop('disabled', false);
+   	    $('#' + id).removeClass('disabled');
+   	    $('#' + id).html('申請');
+   	}*/
+
+   	
+   
+ </script>
+
+ <footer class="text-muted">
+   <div class="container">
+     <p class="float-right">
+       <a href="#">Back to top</a>
+     </p>
+     <p>Album example is &copy; Bootstrap, but please download and customize it for yourself!</p>
+     <p>New to Bootstrap? <a href="https://getbootstrap.com/">Visit the homepage</a> or read our <a
+         href="/docs/4.3/getting-started/introduction/">getting started guide</a>.</p>
+   </div>
+ </footer>
+</body>
+
+</html>ml>

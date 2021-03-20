@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>新增管理員 | 二手物交換</title>
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <link rel="stylesheet" type="text/css" href="statics/css/cake.generic.css">
+    <script src="statics/js/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body style="background-color:black; color:white; margin:30px;">
+    <div id="container">
+        <div id="header">
+           
+        </div>
+        
+        <div id="content"style=" background-color:black;">
+            <h2 style=" background-color:black;color:#FF7575;font-weight:bold;">新增管理員</h2>
+            <a style="color:white; font-size:16px;" href="product.html">首頁</a>
+            <a style="color:white;font-size:16px;" href="managerhomepage.html">  >>管理員專區</a>
+             <a style="color:white;font-size:16px;" href="addManager.html">  >>新增管理員</a>
+                        
+            <div id="flashMessage" class="message" style="display: none;"></div>
+
+            <form id="form" accept-charset="utf-8"style="background-color:black;">
+                <div style="display:none;"><input type="hidden" name="_method" value="POST"></div>
+                <div class="input text required">
+                    <label style="color:white; font-size:14px;"for="member_name">帳號</label>
+                    <input style="background-color:	#DDDDDD;" name="name" maxlength="30" type="text" id="member_name" required="required">
+                </div>
+                <div class="input password required">
+                    <label  style="color:white; font-size:14px;"for="member_password">密碼</label>
+                    <input style="background-color:	#DDDDDD;"name="password" maxlength="30" type="password" id="member_password" required="required" placeholder="至少包含1個英文及1個數字">
+                </div>
+                <div class="input email required">
+                    <label  style="color:white; font-size:14px;"for="member_email">email</label>
+                    <input style="background-color:	#DDDDDD;"name="email" maxlength="50" type="email" id="member_email" required="required">
+                </div>
+                <div class="input phoneNumber required">
+                    <label  style="color:white; font-size:14px;"for="member_phoneNumber">連絡電話</label>
+                    <input style="background-color:	#DDDDDD;"name="phoneNumber" maxlength="12" type="tel" id="member_phoneNumber" required="required" placeholder="09xx-xxx-xxx">
+                </div>
+                <div class="submit"><input type="button" value="註冊" id="submit"></div>
+            </form>
+            
+            <script type="text/javascript">
+                $(document).ready(function() {
+                    // 處理表單點擊事件
+                    var $form = $('#submit');
+                    $form.click(function() {
+                        submit();
+                    });
+                    
+                 // 處理表單點擊事件(會員清單)
+                    var $form3 = $('#index');
+                    $form3.click(function() {
+	                   	if (getCookie("managerOrNot")=="true") {	//cookie的值為string型態，記得加""號
+	                   		alert("讚啦!管理員94你");
+	                   		location.href="index.html";	  
+	                    }
+	                   	else if(getCookie("managerOrNot")=="false"){
+	                   		alert("咩噗இ௰இ 您沒有管理員權限!");
+	                   	}
+	                   	else{
+	                   		alert("您尚未登入為管理員!");
+	                   	}
+                    });
+
+                    function submit() {
+                        var name = $('#member_name').val();
+                        var password = $('#member_password').val();
+                        var email = $('#member_email').val();
+                        var phoneNumber = $('#member_phoneNumber').val();
+
+                        var name_rule = /^(?=.*[A-Za-z])[A-Za-z\d]{5,}$/;
+                        var email_rule = /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]+$/;
+                        var password_rule = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+                        var phone_rule = /^09\d{2}-\d{3}-\d{3}$/;
+
+                        
+                        if(!name_rule.test(name)) {
+                            alert("帳號格式不符，長度至少5，且至少要包含一個英文字母！");
+                        }
+                        else if (!email_rule.test(email)) {
+                            alert("Email格式不符！");
+                        }
+
+                        else if(!password_rule.test(password)) {
+                            alert("密碼格式不符，長度至少8，且至少包含一個數字和英文字母！");
+                        }
+                        else if (!phone_rule.test(phoneNumber)) {
+                        	alert("手機格式不符（應為09XX-XXX-XXX）！");
+                        }
+                        else {
+                            // 將資料組成JSON格式
+                            var data_object = {
+                                "name": name,
+                                "password": password,
+                                "email": email,
+                                "phoneNumber": phoneNumber,
+                            };
+
+                            // 將JSON格式轉換成字串
+                            var data_string = JSON.stringify(data_object);
+
+                            // 發出POST的AJAX請求
+                            $.ajax({
+                                    type: "POST",
+                                    url: "api/manager.do",
+                                    data: data_string,
+                                    crossDomain: true,
+                                    cache: false,
+                                    dataType: 'json',
+                                    timeout: 5000,
+                                    success: function (response) {
+                                        $('#flashMessage').html(response.message);
+                                        $('#flashMessage').show();
+                                        if(response.status == 200){
+                                           
+                                        }
+                                    },
+                                    error: function () {
+                                        alert("無法連線到伺服器！");
+                                    }
+                            });
+                        }
+                    }
+                    
+                  //取cookies函式  
+                	function getCookie(cname) {
+					  var name = cname + "=";
+					  var decodedCookie = decodeURIComponent(document.cookie);
+					  var ca = decodedCookie.split(';');
+					  for(var i = 0; i <ca.length; i++) {
+					    var c = ca[i];
+					    while (c.charAt(0) == ' ') {
+					      c = c.substring(1);
+					    }
+					    if (c.indexOf(name) == 0) {
+					      return c.substring(name.length, c.length);
+					    }
+					  }
+					  return "";
+					}
+
+                });
+            </script>
+
+        </div>
+        
+        <div id="footer">
+            
+        </div>
+    </div>
+
+    <table class="cake-sql-log" id="sql_log" summary="Cake SQL Log" cellspacing="0">
+       
+        <tbody>
+        </tbody>
+    </table>
+
+</body>
+
+</html>

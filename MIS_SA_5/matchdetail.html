@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+ <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+  <meta name="generator" content="Jekyll v3.8.5">
+
+  <title>交易資料詳情 ｜ 二手物交換平台</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="statics/css/bootstrap.min.css" rel="stylesheet">
+  <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+  <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+
+
+  <style>
+    .bd-placeholder-img {
+      font-size: 1.125rem;
+      text-anchor: middle;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    @media (min-width: 768px) {
+      .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+      }
+    }
+  </style>
+  <!-- Custom styles for this template -->
+  <link href="statics/css/product.css" rel="stylesheet">
+
+  <script src="statics/js/jquery-3.4.1.min.js"></script>
+</head>
+
+<body>
+<div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+    <h5 class="my-0 mr-md-auto font-weight-normal">二手物交換平台</h5>
+    <nav class="my-2 my-md-0 mr-md-3">
+      	<a class="p-2 text-dark" href="product.html">首頁</a>
+    	<a class="p-2 text-dark" href="product.html">一般物品列表</a>
+      	<a class="p-2 text-dark" href="memberhomepage.html">會員專區</a>
+      	<input type="button" class="btn btn-outline-secondary" value="登出" id="sign_out">
+    </nav>
+  </div>
+	<div id="container">
+		<div id="content">
+		<div  style="margin:25px;margin-left:70px; padding:10px;">
+				<h2>媒合資料詳情</h2>
+				<div id="flashMessage" class="message" style="display: none;"></div>
+				<div id='order_panel' >
+				</div>
+				<div style="text-align:right;">
+					<button id="success" style="margin:7px;" class="btn btn-outline-success " type="button">取物成功</button>
+    				<button id="fail" style="margin:7px;" class="btn btn-outline-danger " type="button">取物失敗</button>
+				</div>
+			</div>
+	<script type="text/javascript">
+				// 取得網址參數
+                var url_string = window.location.href;
+                var url = new URL(url_string);
+                var match_id = url.searchParams.get("match_id");
+                var from = url.searchParams.get("from");
+                var match_status = "";
+                var sql_num = 0;
+                var token = 0;
+                var mean_of_transaction = url.searchParams.get("mean_of_transaction");
+                var exchangedProduct_id =  url.searchParams.get("exchangedProduct_id");
+               	var owner_id = 0;
+               	var buyer_id = 0;
+                var product_id = 0;
+                var type = "媒合";
+                var exchangedProduct_name = "";
+
+                function getMatchByID(match_id) {
+                    // 發出POST的GET請求取得所有申請列表
+                    $.ajax({
+                            type: "GET",
+                            url: "api/match.do",
+                            data: {
+                                'id': match_id,
+                                'from': from
+                            },
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    updateHTML(response.response.data);//response回來
+                                    
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                    });
+                }
+                
+                // 更新申請畫面
+             	function updateHTML(data) {
+		     		var inner_html = '';
+	  	     		var temp = '';
+	  	     		$('#order_panel').empty;
+	  	     		$.each(data, function(index, value) {
+	  	     			
+	  	     			//mean_of_transaction = value['mean_of_transaction'];
+	  	     			//exchangedProduct_name =  value['exchangedProduct_name'];
+	  	     			
+	  	     		//之後要加cookie抓selectproduct選的商品exchangedProduct_name	
+                   	if(from == "物主"){
+                   		if(value['mean_of_transaction'] == "以物易物" ){
+                     	match_status = value['status'];
+                     	exchangedProduct_id = value['exchangedProduct_id'];
+                     	exchangedProduct_name = value['exchangedProduct_name'];
+                     	product_id = value['product_id'];
+                     	
+                     	temp ='<a class="link-secondary" href="product.html">首頁</a> >  <a class="link-secondary" href="memberhomepage.html">會員專區</a> >  <a class="link-secondary" href="othermatch.html">查看他人媒合</a> > 媒合詳情';
+	  					temp += '</div>';
+	  					
+	  					temp +='<div class="album py-5 bg-light">';
+  						temp +='<div class="card text-center">';
+  						temp += '<div class="card-header mb-1 text-muted">' + value['category'] + '</div>';
+  						temp +='<div class="card-body">';
+  						temp += '<h1 class="card-title">' + value['product_name'] + '</h1>';
+		  				temp += '<p class="card-text">描述：' + value['description'] + '</p>';
+  						
+		  				
+		  				temp += '<footer class="blockquote-footer" style="padding:10px;">買家：' + value['buyer_name'];
+		  				temp += '<div>買家電話：' + value['buyer_phone'] + '</div>';
+		  				temp += '<div>物主電話：' + value['owner_phone'] + '</div>';
+		  				temp += '<div>交易方式：' + value['mean_of_transaction'] + '</div>';
+		  				temp += '<div>選擇對方商品：' + exchangedProduct_name + '</div>';
+		  				temp += '<div>狀態：' + value['status']+'</div>';
+		  				//temp += '<a href="selectproduct.html?buyer_id=' + value['buyer_id'] + ' "><button id="check" style="margin:10px;" class="btn btn-outline-warning" type="button" >瀏覽對方商品</button></a>';
+		  				temp += '</div>';
+		  				temp += '<div class="card-footer text-muted">申請時間：' + value['start_time']+'</div>';
+                     	
+                     	
+		  				//temp = '<h1><a href="pro.html">首頁</a> >  <a href="memberhomepage.html">會員專區</a> >  <a href="othermatch.html">查看他人媒合</a> > 媒合詳情<h1>';
+		  				//temp += '<div >訂單編號：'+ value['order_id'] + '		買家：' + value['buyer_name'] + '		申請日期：' + value['start_time'] + '	狀態：' + value['status'];
+		  				//temp += '<div class="col p-4 d-flex flex-column position-static">';
+		  				//temp += '<strong class="d-inline-block mb-2 text-primary">欲申請商品：' + value['product_name'] + '</strong>';
+		  				//temp += '<h3 class="mb-0"><span class="p-2">類別：' +value['category'] + '</span>';
+		  				//temp += '<span>描述：' + value['description'] + '</span></h3>';
+		  				//temp += '<div class="mb-1 text-muted">買家電話：' + value['buyer_phone'] + '</div>';
+		  				//temp += '<div class="mb-1 text-muted">物主電話：' + value['owner_phone'] + '</div>';
+		  				//temp += '<hr/>';
+		  				//temp += '<div class="mb-1 text-muted">交易方式：' + value['mean_of_transaction'] + '</div>';
+		  				//temp += '<div class="mb-1 text-muted">選擇對方商品：' + value['exchangedProduct_name'] + '</div>';
+		  				
+		  				
+		  				temp += '</div></div>';
+		  				if(value['status'] == from+"取物成功"){
+		  					
+		  					$("#success").hide();
+		  					$("#fail").hide();
+		  					
+		  				}
+		  				else if(value['status'] == from+"取物失敗"){
+		  					
+		  					//$("#success").hide();
+		  					$("#fail").hide();
+		  					
+		  				}
+		  				else if(value['status'] == "完成媒合"){
+		  					
+		  					$("#success").hide();
+		  					$("#fail").hide();
+		  					
+		  				}
+		  				
+		  				
+		  				
+		  			}
+		  				else{
+		  					product_id = value['product_id'];
+		  					
+		  					temp ='<a class="link-secondary" href="product.html">首頁</a> >  <a class="link-secondary" href="memberhomepage.html">會員專區</a> >  <a class="link-secondary" href="othermatch.html">查看他人媒合</a> > 媒合詳情';
+		  					temp += '</div>';
+		  					
+		  					temp +='<div class="album py-5 bg-light">';
+	  						temp +='<div class="card text-center">';
+	  						temp += '<div class="card-header mb-1 text-muted">' + value['category'] + '</div>';
+	  						temp +='<div class="card-body">';
+	  						temp += '<h1 class="card-title">' + value['product_name'] + '</h1>';
+			  				temp += '<p class="card-text">描述：' + value['description'] + '</p>';
+	  						
+			  				
+			  				temp += '<footer class="blockquote-footer" style="padding:10px;">買家：' + value['buyer_name'];
+			  				temp += '<div>買家電話：' + value['buyer_phone'] + '</div>';
+			  				temp += '<div>物主電話：' + value['owner_phone'] + '</div>';
+			  				temp += '<div>交易方式：' + value['mean_of_transaction'] + '</div>';
+			  				temp += '<div>代幣：' + value['token'] + '</div>';
+			  				temp += '<div>狀態：' + value['status']+'</div>';
+			  				//temp += '<a href="selectproduct.html?buyer_id=' + value['buyer_id'] + ' "><button id="check" style="margin:10px;" class="btn btn-outline-warning" type="button" >瀏覽對方商品</button></a>';
+			  				temp += '</div>';
+			  				temp += '<div class="card-footer text-muted">申請時間：' + value['start_time']+'</div>';
+		  					
+		  					//temp = '<h1><a href="home.html">首頁</a> >  <a href="memberhomepage.html">會員專區</a> >  <a href="othermatch.html">查看他人媒合</a> > 媒合詳情<h1>';
+		  					//temp += '<div >訂單編號：'+ value['order_id'] + '		買家：' + value['buyer_name'] + '		申請日期：' + value['start_time'] + '	狀態：' + value['status'];
+		  					//temp += '<div class="col p-4 d-flex flex-column position-static">';
+			  				//temp += '<strong class="d-inline-block mb-2 text-primary">欲申請商品：' + value['product_name'] + '</strong>';
+			  				//temp += '<h3 class="mb-0"><span class="p-2">類別：' +value['category'] + '</span>';
+			  				//temp += '<span>描述：' + value['description'] + '</span></h3>';
+			  				//temp += '<hr/>';
+			  				//temp += '<div class="mb-1 text-muted">交易方式：' + value['mean_of_transaction'] + '</div>';
+			  				//temp += '<div class="mb-1 text-muted">代幣：' + value['token'] + '</div>';
+			  				
+			  				
+			  				//temp += '</div></div>';
+			  				
+			  					$("#success").hide();
+			  					$("#fail").hide();
+			  					
+			  				
+			  				
+		  
+		  				}
+                   	
+					}
+                   	else{
+                   		if(value['mean_of_transaction'] == "以物易物"){
+                            match_status = value['status'];
+                            product_id = value['product_id'];
+                            
+                            temp ='<a class="link-secondary" href="product.html">首頁</a> >  <a class="link-secondary" href="memberhomepage.html">會員專區</a> >  <a class="link-secondary" href="mymatch.html">查看我的媒合</a> > 媒合詳情';
+    	  					temp += '</div>';
+    	  					
+    	  					temp +='<div class="album py-5 bg-light">';
+      						temp +='<div class="card text-center">';
+      						temp += '<div class="card-header mb-1 text-muted">' + value['category'] + '</div>';
+      						temp +='<div class="card-body">';
+      						temp += '<h1 class="card-title">' + value['product_name'] + '</h1>';
+    		  				temp += '<p class="card-text">描述：' + value['description'] + '</p>';
+      						
+    		  				
+    		  				temp += '<footer class="blockquote-footer" style="padding:10px;">物主：' + value['owner_name'];
+    		  				temp += '<div>買家電話：' + value['buyer_phone'] + '</div>';
+    		  				temp += '<div>物主電話：' + value['owner_phone'] + '</div>';
+    		  				temp += '<div>交易方式：' + value['mean_of_transaction'] + '</div>';
+    		  				temp += '<div>狀態：' + value['status']+'</div>';
+    		  				temp += '<div>物主選擇之物品：' + value['exchangedProduct_name'] + '</div>';
+    		  				temp += '<a href="viewproduct.html?exchangedProduct_id=' + value['exchangedProduct_id'] +'type=' +type+' "><button id="check" style="margin:10px;" class="btn btn-outline-warning" type="button" >查看商品</button></a>';
+    		  				//temp += '<a href="selectproduct.html?buyer_id=' + value['buyer_id'] + ' "><button id="check" style="margin:10px;" class="btn btn-outline-warning" type="button" >瀏覽對方商品</button></a>';
+    		  				temp += '</div>';
+    		  				temp += '<div class="card-footer text-muted">申請時間：' + value['start_time']+'</div>';
+                            
+                            
+                   			//temp = '<h1><a href="home.html">首頁</a> >  <a href="memberhomepage.html">會員專區</a> >  <a href="mymatch.html">查看自己媒合</a> > 媒合詳情<h1>';
+                   			//temp += '<div >訂單編號：'+ value['order_id'] + '		物主：' + value['owner_name'] + '		申請日期：' + value['start_time'] + '	狀態：' + value['status'];
+    		  				//temp += '<div class="col p-4 d-flex flex-column position-static">';
+    		  				//temp += '<strong class="d-inline-block mb-2 text-primary">欲申請商品：' + value['product_name'] + '</strong>';
+    		  				//temp += '<h3 class="mb-0"><span class="p-2">類別：' +value['category'] + '</span>';
+    		  				//temp += '<span>描述：' + value['description'] + '</span></h3>';
+    		  				//temp += '<hr/>';
+    		  				//temp += '<div class="mb-1 text-muted">交易方式：' + value['mean_of_transaction'] + '</div>';
+    		  				//temp += '<div class="mb-1 text-muted">物主選擇之物品：' + value['exchangedProduct_name'] + '</div>';
+    		  				//temp += '<p class="card-text mb-auto"><a href="viewproduct.html?exchangedProduct_id=' + value['exchangedProduct_id'] +'type=' +type+' ">查看商品</a></p>';
+    		  				
+    		  				//temp += '</div></div>';
+    		  				if(value['status'] == from+"取物成功"){
+    		  					
+    		  					$("#success").hide();
+    		  					$("#fail").hide();
+    		  					
+    		  				}
+    		  				else if(value['status'] == from+"取物失敗"){
+    		  					
+    		  					//$("#success").hide();
+    		  					$("#fail").hide();
+    		  					
+    		  				}
+    		  				else if(value['status'] == "完成媒合"){
+    		  					
+    		  					$("#success").hide();
+    		  					$("#fail").hide();
+    		  					
+    		  				}
+    		  				
+    		  			}
+    		  				else{
+    		  					token = value['token'];
+    		  					buyer_id = value['buyer_id'];
+    		  					owner_id = value['owner_id'];
+    		  					product_id = value['product_id'];
+    		  					
+    		  					temp ='<a class="link-secondary" href="product.html">首頁</a> >  <a class="link-secondary" href="memberhomepage.html">會員專區</a> >  <a class="link-secondary" href="mymatch.html">查看我的媒合</a> > 媒合詳情';
+    		  					temp += '</div>';
+    		  					
+    		  					temp +='<div class="album py-5 bg-light">';
+    	  						temp +='<div class="card text-center">';
+    	  						temp += '<div class="card-header mb-1 text-muted">' + value['category'] + '</div>';
+    	  						temp +='<div class="card-body">';
+    	  						temp += '<h1 class="card-title">' + value['product_name'] + '</h1>';
+    			  				temp += '<p class="card-text">描述：' + value['description'] + '</p>';
+    	  						
+    			  				
+    			  				temp += '<footer class="blockquote-footer" style="padding:10px;">物主：' + value['owner_name'];
+    			  				temp += '<div>買家電話：' + value['buyer_phone'] + '</div>';
+    			  				temp += '<div>物主電話：' + value['owner_phone'] + '</div>';
+    			  				temp += '<div>交易方式：' + value['mean_of_transaction'] + '</div>';
+    			  				temp += '<div>代幣：' + value['token'] + '</div>';
+    			  				temp += '<div>狀態：' + value['status']+'</div>';
+    			  				//temp += '<a href="selectproduct.html?buyer_id=' + value['buyer_id'] + ' "><button id="check" style="margin:10px;" class="btn btn-outline-warning" type="button" >瀏覽對方商品</button></a>';
+    			  				temp += '</div>';
+    			  				temp += '<div class="card-footer text-muted">申請時間：' + value['start_time']+'</div>';
+    		  					
+    		  					//temp = '<h1><a href="home.html">首頁</a> >  <a href="memberhomepage.html">會員專區</a> >  <a href="mymatch.html">查看自己媒合</a> > 媒合詳情<h1>';
+    		  					//temp += '<div >訂單編號：'+ value['order_id'] + '		物主：' + value['owner_name'] + '		申請日期：' + value['start_time'] + '	狀態：' + value['status'];
+    		  					//temp += '<div class="col p-4 d-flex flex-column position-static">';
+    			  				//temp += '<strong class="d-inline-block mb-2 text-primary">欲申請商品：' + value['product_name'] + '</strong>';
+    			  				//temp += '<h3 class="mb-0"><span class="p-2">類別：' +value['category'] + '</span>';
+    			  				//temp += '<span>描述：' + value['description'] + '</span></h3>';
+    			  				//temp += '<hr/>';
+    			  				//temp += '<div class="mb-1 text-muted">交易方式：' + value['mean_of_transaction'] + '</div>';
+    			  				//temp += '<div class="mb-1 text-muted">代幣：' + value['token'] + '</div>';
+    			  				
+    			  				
+    			  				//temp += '</div></div>';
+    			  				if(value['status'] == from+"取物成功"){
+    			  					
+    			  					$("#success").hide();
+    			  					$("#fail").hide();
+    			  					
+    			  				}
+    			  				else if(value['status'] == from+"取物失敗"){
+    			  					
+    			  					//$("#success").hide();
+    			  					$("#fail").hide();
+    			  					
+    			  				}
+    			  				else if(value['status'] == "完成媒合"){
+    			  					
+    			  					$("#success").hide();
+    			  					$("#fail").hide();
+    			  					
+    			  				}
+    			  				
+    		  				}
+                   		
+                   	}
+		  			})                
+		  			inner_html = temp;
+	  	     		
+	  
+	 				 $('#order_panel').append(inner_html);
+                }
+                
+             	 
+                
+             	function updateMatchStatus(match_id, status){
+                	
+             		if(exchangedProduct_name == ""){
+             			var  data_object = {'match_id': match_id, 'status' : status, 'mean_of_transaction' : mean_of_transaction, 'match_status' : match_status, 'type' : "status", 'product_id' : product_id};
+             		}
+             		else{
+             			
+             			var data_object = {'match_id': match_id, 'status' : status, 'mean_of_transaction' : mean_of_transaction, 'match_status' : match_status, 'type' : "status", 'product_id' : product_id, 'exchangedProduct_id' : exchangedProduct_id};
+             		}
+             		
+             		var data_string = JSON.stringify(data_object);
+             			
+             			$.ajax({
+                            type: "PUT",
+                            url: "api/match.do",
+                            data: data_string,
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                
+                                if(response.status == 200){
+                                	if(token !=0){
+                                		updateMemberTokenAmount(token);
+                                	}
+                                    
+                                    window.location.reload();
+                                    
+                                }
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                    });
+             			
+             		
+               	 
+               	
+               }
+             	
+             	function updateMemberTokenAmount(token){
+             		
+             		data_object = {'buyer_id': buyer_id, 'owner_id' : owner_id, 'token' : token, 'type' : "token"};
+             		var data_string = JSON.stringify(data_object);
+             			
+             			$.ajax({
+                            type: "PUT",
+                            url: "api/match.do",
+                            data: data_string,
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                
+                                if(response.status == 200){
+                                    
+                                    alert("親，您付代幣囉~ 支付:"+token);
+                                }
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                    });
+             		
+             	}
+             	
+             	
+             	
+                
+             	$("#fail").click(function () {
+                	console.log("[@Action]取物失敗");
+                	updateMatchStatus(match_id, from+"取物失敗");
+                	alert("親!取物失敗QQ!");
+                });
+            	$("#success").click(function () {
+                	console.log("[@Action]取物成功");
+                	updateMatchStatus(match_id, from+"取物成功");
+                	alert("親!取物成功!");
+                });
+            	
+            	//登出
+				function sign_out(){
+					if(getCookie("member_id")== ""){
+                    	alert("親!您還沒有登入過ㄛ");
+                	}
+                	else{	
+                	delCookie("member_id");
+                	delCookie("managerOrNot");
+                	location.href="login.html"
+                	alert("已登出!");
+                	
+                	}
+             	}
+                
+                $(document).ready(function() {
+                	getMatchByID(match_id);
+                    var $form2 = $('#sign_out');
+                    $form2.click(function() {
+                    	sign_out();
+                    });
+                });
+                
+                
+            </script>
+		</div>
+		
+	</div>
+	
+</body>
+
+</html>

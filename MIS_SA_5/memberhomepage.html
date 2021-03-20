@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="statics/css/memnmanhomepage.css">
+    <script src="statics/js/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+    <title>會員專區 ｜ 二手物交換</title>
+</head>
+
+<body>
+	<div id="container">
+		<div id="memberheader">
+        	<i><strong>二手物交換</strong></i>
+        	<span id="memberheadhtomhp">
+            	<a href="product.html">首頁</a> > <a href="memberhomepage.html">會員專區</a>
+            </span>
+        </div>
+        <div id="membercontentname">
+        		<h1>會員專區</h1>
+        	</div>
+        <div id="memberfninfo">
+        	
+		<div id="memberinfo">
+			<strong>會員資料</strong><hr> 
+			<table style="border:5px #cccccc solid;" rules="all" cellpadding='5'>
+　				<tr>
+				<td colspan="2"><strong>帳號名稱</strong></td>
+				<td colspan="2"><strong>手機</strong></td>
+				<td colspan="2"><strong>電子郵件</strong></td>
+				</tr>
+				<tr>
+				<td colspan="2"><input type="text" value="帳號名稱" id="name" disabled ></td>
+				<!--<td colspan="2"><input type="password" value="密碼" id="password" disabled ></td>  -->
+				<td colspan="2"><input type="text" value="手機" id="phonenumber" disabled></td>
+				<td colspan="2"><input type="text" value="電子郵件" id="email"disabled></td>
+				</tr>
+				<tr>
+				<td colspan="2"><strong>密碼</strong></td>
+				<td colspan="2"><strong>停權</strong></td>				
+				<td colspan="2"><strong>代幣總額</strong></td>
+				</tr>
+				<tr>
+				<td colspan="2"><input type="text" value="密碼" id="password" disabled ></td>
+				<td colspan="2"><input type="text" value="停權" id="status"disabled></td>
+				<td colspan="2"><input type="text" value="代幣總額" id="token_amount"disabled></td>
+				</tr>
+				</table>
+				</div>
+				
+			<div id="memberfunction">
+        		
+        		<input type="button" value="編輯會員資料" onclick="location.href='edit.html'">
+        		<input type="button" value="我的一般商品" onclick="location.href='personalProduct.html'">
+				<input type="button" value="新增一般商品" onclick="location.href='addProduct.html'">
+				 <input type="button" value="查看我的申請" onclick="location.href='myapplication.html'">
+				 <input type="button" value="查看他人申請" onclick="location.href='otherapplication.html'">
+				 <input type="button" value="查看我的媒合" onclick="location.href='mymatch.html'">
+				<input type="button" value="查看他人媒合" onclick="location.href='othermatch.html'">
+				<input type="button" value="我的期望物品" onclick="location.href='personalEProduct.html'">
+				<input type="button" value="新增期望物品" onclick="location.href='addEProduct.html'">
+        		<input type="button" value="查看我的幫助" onclick="location.href='myhelp.html'">
+				<input type="button" value="查看他人的幫助" onclick="location.href='otherhelp.html'">
+				<input type="button" value="查看許願" onclick="location.href='mywish.html'">		
+        </div>
+        
+			
+			 <script type="text/javascript">
+
+                function getMember() {
+                    // 發出POST的GET請求取得會員資訊
+             		var member_id=getCookie('member_id');
+             		var managerOrNot=getCookie('managerOrNot');
+             		//console.log(member_id); 有撈到
+                    $.ajax({
+                            type: "GET",
+                            url: "api/member.do",
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            data:{id:member_id},
+                            success: function (response) {
+                                if(response.status == 200){
+                                   
+                                    document.getElementById('name').value = response['response']['data'][0]['name'];
+                            		document.getElementById('password').value = response['response']['data'][0]['password'];
+                            		document.getElementById('phonenumber').value = response['response']['data'][0]['phoneNumber'];
+                            		document.getElementById('email').value = response['response']['data'][0]['email'];
+                            		document.getElementById('status').value = response['response']['data'][0]['status'];
+                            		document.getElementById('token_amount').value = response['response']['data'][0]['token_amount'];
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                    });
+                }
+              
+              //取cookies函式  
+            	function getCookie(cname) {
+				  var name = cname + "=";
+				  var decodedCookie = decodeURIComponent(document.cookie);
+				  var ca = decodedCookie.split(';');
+				  for(var i = 0; i <ca.length; i++) {
+				    var c = ca[i];
+				    while (c.charAt(0) == ' ') {
+				      c = c.substring(1);
+				    }
+				    if (c.indexOf(name) == 0) {
+				      return c.substring(name.length, c.length);
+				    }
+				  }
+				  return "";
+				}
+              
+              
+                $(document).ready(function() {
+                    getMember();
+                });
+            </script>
+		</div>
+		
+       
+	</div>	
+	
+</html>

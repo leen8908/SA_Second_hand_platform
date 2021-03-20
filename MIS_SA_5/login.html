@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>登入 | 二手物交換</title>
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <link rel="stylesheet" type="text/css" href="statics/css/cake.generic.css">
+    <script src="statics/js/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body style="background-color:black;color:white; margin:30px;">
+    <div id="container">
+        <div id="header">
+            
+        </div>
+        
+        <div id="content"style=" background-color:black;">
+            <h2 style=" background-color:black;color:#FF7575;font-weight:bold;">登入會員</h2>            
+            <a style="color:white; font-size:16px;"href="product.html">首頁</a>
+            <a style="color:white; font-size:16px;"href="register.html">會員註冊</a>
+            
+             
+            <div id="flashMessage" class="message" style="display: none;"></div>
+
+            <form id="form" accept-charset="utf-8"style="background-color:black;">
+                <div style="display:none;"><input type="hidden" name="_method" value="POST"></div>
+                <div class="input text required">
+                    <label  style="color:white; font-size:14px;"for="member_name">帳號</label>
+                    <input style="background-color:	#DDDDDD;"name="name" maxlength="30" type="text" id="member_name" required="required">
+                </div>
+                <div class="input password required">
+                    <label style="color:white; font-size:14px;"for="member_password">密碼</label>
+                    <input style="background-color:	#DDDDDD;"name="password" maxlength="30" type="password" id="member_password" required="required">
+                </div>
+
+                <div class="submit"><input type="button"  value="登入" id="submit"
+					 class="submit"> &nbsp<input type="button"  value="登出" id="sign_out"></div>
+                
+            
+            </form>
+           	
+             <script type="text/javascript">
+             	            
+                $(document).ready(function() {
+                	islogin();
+                
+                	
+                    // 處理表單點擊事件(登入)
+                    var $form1 = $('#submit');
+                    $form1.click(function() {
+                    	if(getCookie("member_id")!=""){
+                        	alert("親!您已經登入過囉!");
+                    	}
+                    	else{	
+                        submit();
+                    	}
+                    });
+                    
+                 // 處理表單點擊事件(登出)
+                    var $form2 = $('#sign_out');
+                    $form2.click(function() {
+                    	sign_out();
+                    });
+                    
+                 	// 處理表單點擊事件(會員清單)
+                    var $form3 = $('#index');
+                    $form3.click(function() {
+	                   	if (getCookie("managerOrNot")=="true") {	//cookie的值為string型態，記得加""號
+	                   		alert("讚啦!管理員94你");
+	                   		location.href="index.html";	  
+	                    }
+	                   	else if(getCookie("managerOrNot")=="false"){
+	                   		alert("咩噗இ௰இ 您沒有管理員權限!");
+	                   	}
+	                   	else{
+	                   		alert("您尚未登入為管理員!");
+	                   	}
+                    });
+                	
+               	 
+                  
+                   
+               
+
+                    function submit() {
+                        var name = $('#member_name').val();
+                        var password = $('#member_password').val();
+
+                        // 將資料組成JSON格式
+                        var data_object = {
+                            "name": name,
+                            "password": password,
+                        };
+
+                        // 將JSON格式轉換成字串
+                        var data_string = JSON.stringify(data_object);
+
+                        // 發出POST的AJAX請求
+                        $.ajax({
+                                type: "POST",
+                                url: "api/login.do",
+                                data: data_string,
+                                crossDomain: true,
+                                cache: false,
+                                dataType: 'json',
+                                timeout: 5000,
+                                success: function (response) {
+                                	$('#flashMessage').html(response.message);
+                                    $('#flashMessage').show();
+                                    
+                                    if(response.status == 200){                                    	                                   	
+                                    	setCookie("member_id", response['response']['data'][0]['id'],1) ;
+                	                    setCookie("managerOrNot", response['response']['data'][0]['managerOrNot'],1) ;
+                	                    setCookie("status", response['response']['data'][0]['status'],1) ;
+                	                  //登入成功後，就禁止再次輸入帳號密碼(除非登出了)
+                	                    $("#member_name").attr("disabled","disabled");
+                	                    $("#member_password").attr("disabled","disabled");	
+                	                    
+                                        
+                                        var parameter= getCookie("member_id");
+                                        var parameter2= getCookie("managerOrNot");
+                                        var parameter3 =getCookie("status");
+                	                	location.href='#member_id='+parameter+'#managerOrNot='+parameter2;
+                	                	if(parameter3=="false"){
+	                	                	alert('親,恭喜你登入!!') 
+	                	                	location.href='product.html';
+                	                	}
+                	                	else{ 
+                	                		alert('幫你QQ,你被停權了!!')
+                	                		alert('只好幫你登出了 掰掰不送!!')
+                	                		sign_out();
+                	                		
+                	                	}
+                	                	
+                	                	
+                	                	
+                	                }
+									else{
+					                    $("#member_password").val("");  //將密碼input清空
+					                    $("#member_password").focus();  //將游標定位到密碼input
+                	                }
+                                },
+                                error: function () {
+                                    alert("無法連線到伺服器！");
+                                }
+                        });
+
+                    }
+              
+                    
+                  //設定cookies
+                	function setCookie(cname, cvalue,exdays) {
+					  var d = new Date();
+					  d.setTime(d.getTime() + (exdays*24*60*60*1000));
+					  var expires = "expires="+ d.toUTCString();
+					  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+					}
+                	//取cookies函式  
+                	function getCookie(cname) {
+					  var name = cname + "=";
+					  var decodedCookie = decodeURIComponent(document.cookie);
+					  var ca = decodedCookie.split(';');
+					  for(var i = 0; i <ca.length; i++) {
+					    var c = ca[i];
+					    while (c.charAt(0) == ' ') {
+					      c = c.substring(1);
+					    }
+					    if (c.indexOf(name) == 0) {
+					      return c.substring(name.length, c.length);
+					    }
+					  }
+					  return "";
+					}
+                	//刪除cookie
+                	function delCookie(name){
+                	  document.cookie = name +"= ;expires=Thu, 01 Jan 1970 00:00:00 UTC ;path=/";
+                	}
+                	
+                	//判斷是否已經登入過
+					function islogin(){
+						//登入成功後，除非登出，否則不能再輸入帳號密碼
+                    	if(getCookie("member_id")!=""){
+                    	alert("親!您已經登入過囉!");
+                    	$("#member_name").attr("disabled","disabled");
+                    	
+	                    $("#member_password").attr("disabled","disabled");	
+                    	}
+                 	}
+                	
+					//登出
+					function sign_out(){
+						if(getCookie("member_id")== ""){
+                        	alert("親!您還沒有登入過ㄛ");
+                    	}
+                    	else{	
+                    	delCookie("member_id");
+                    	delCookie("managerOrNot");
+                    	location.href="login.html"
+                    	alert("已登出!");
+                    	
+                    	}
+                 	}
+                	
+					
+                    
+                });
+            </script>
+
+        </div>
+        
+        <div id="footer">
+            
+        </div>
+    </div>
+
+    <table class="cake-sql-log" id="sql_log" summary="Cake SQL Log" cellspacing="0">
+        
+        <tbody>
+        </tbody>
+    </table>
+
+</body>
+
+</html>

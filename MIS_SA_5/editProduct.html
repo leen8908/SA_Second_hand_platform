@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>編輯一般物品 | 二手物交換</title>
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <link rel="stylesheet" type="text/css" href="statics/css/cake.generic.css">
+
+    <script src="statics/js/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body style="background-color:black;color:white; margin:30px;">
+    <div id="container">
+        <div id="header">
+            
+        </div>
+        <div id="content"style=" background-color:black;color:white;">
+            <h2 style=" background-color:black;color:#FF7575;font-weight:bold;">編輯一般物品資料</h2>
+              <a style="color:white; font-size:16px;"href="product.html">首頁</a>>>
+            <a style="color:white; font-size:16px;"href="memberhomepage.html">會員專區</a>>>編輯一般物品
+			
+            <div id="flashMessage" class="message" style="display: none;"></div>
+
+            <form id="form" accept-charset="utf-8"style="background-color:black;">
+                <div style="display:none;"><input type="hidden" name="_method" value="POST"></div>
+                <div class="input text required">
+                    <label style="color:white; font-size:14px;"for="product_name">商品名稱</label>
+                    <input style="background-color:	#9D9D9D;"name="name" maxlength="30" type="text" id="product_name" required="required" disabled>
+                </div>
+                <div class="input category required">
+                    <label style="color:white; font-size:14px;"for="product_category">商品類別</label>
+                    <input style="background-color:	#9D9D9D;"name="category" maxlength="50" type="text" id="product_category" required="required" disabled>
+                </div>
+                <div class="input desribtion required">
+                    <label style="color:white; font-size:14px;"for="product_describtion">商品描述</label>
+                    <input style="background-color:	#DDDDDD;"name="descrition" maxlength="250"type="text" id="product_describtion" required="required">
+                </div>
+                 <div class="input text">
+                    <label style="color:white; font-size:14px;"for="product_token">代幣</label>
+                    <input style="background-color:	#9D9D9D;"name="token" type="text" id="product_token" disabled>
+                </div>
+                <div class="input text">
+                    <label style="color:white; font-size:14px;"for="product_area">地區</label>
+                    <input style="background-color:	#DDDDDD;"name="area" type="text" id="product_area" required="required">
+                </div>
+                <div class="submit"><input type="button" value="更新" id="submit"></div>
+            </form>
+
+            <script type="text/javascript">
+                // 取得網址參數
+                var url_string = window.location.href;
+                var url = new URL(url_string);
+                var id = url.searchParams.get("id");
+                
+                var sql_num = 0;
+
+                function updateProduct(id) {
+                    var name = $('#product_name').val();
+                    var category = $('#product_category').val();
+                    var describtion = $('#product_describtion').val();
+                    var token = $('#product_token').val();
+                    var area = $('#product_area').val();
+
+
+           
+                        // 將資料組成JSON格式
+                        var data_object = {
+                            "id": id,
+                            "name": name,
+                            "category": category,
+                            "describtion": describtion,
+                            "token":token,
+                            "area":area
+                        };
+
+                        // 將JSON格式轉換成字串
+                        var data_string = JSON.stringify(data_object);
+
+                        // 發出POST的PUT請求
+                        $.ajax({
+                                type: "PUT",
+                                url: "api/PController.do",
+                                data: data_string,
+                                crossDomain: true,
+                                cache: false,
+                                dataType: 'json',
+                                timeout: 5000,
+                                success: function (response) {
+                                    $('#flashMessage').html(response.message);
+                                    $('#flashMessage').show();
+                                    if(response.status == 200){
+                                        
+                                        getMember();
+                                    }
+                                },
+                                error: function () {
+                                    alert("無法連線到伺服器！");
+                                }
+                        });
+                    }
+                
+
+              
+
+                function getProduct() {
+                    $.ajax({
+                        type: "GET",
+                        url: "api/PController.do",
+                        crossDomain: true,
+                        data: {id_list:id},
+                        cache: false,
+                        dataType: 'json',
+                        timeout: 5000,
+                        success: function (response) {
+                            if(response.status == 200){
+                            	
+                            	document.getElementById('product_name').value = response['response']['data'][0]['name'];
+                            	document.getElementById('product_category').value = response['response']['data'][0]['category'];
+                            	document.getElementById('product_describtion').value = response['response']['data'][0]['describtion'];
+                            	document.getElementById('product_token').value = response['response']['data'][0]['token'];
+                            	document.getElementById('product_area').value = response['response']['data'][0]['area'];
+                            }
+                            console.log(response);
+                        },
+                        error: function () {
+                            alert("無法連線到伺服器！");
+                        }
+                    });
+                }
+
+                $('#submit').click(function() {
+                	updateProduct(id)
+                });
+                
+                $(document).ready(function() {
+                	// 發出GET的AJAX請求取得原本該商品的資料
+                 	$("#sql_log > tbody").empty();
+                    getProduct();
+                });
+            </script>
+        </div>
+        <div id="footer">
+            
+        </div>
+    </div>
+
+    <table class="cake-sql-log" id="sql_log" summary="Cake SQL Log" cellspacing="0">
+        
+        <tbody>
+        </tbody>
+    </table>
+</body>
+
+</html>

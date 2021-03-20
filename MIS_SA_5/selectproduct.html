@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="description" content="">
+<meta name="author"
+	content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+<meta name="generator" content="Jekyll v3.8.5">
+
+<title>商品列表 ｜ 網頁名稱</title>
+
+<!-- Bootstrap core CSS -->
+<link href="statics/css/bootstrap.min.css" rel="stylesheet">
+<link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+<link href="statics/icon/favicon.ico" type="image/x-icon"
+	rel="shortcut icon">
+
+
+<style>
+.bd-placeholder-img {
+	font-size: 1.125rem;
+	text-anchor: middle;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+@media ( min-width : 768px) {
+	.bd-placeholder-img-lg {
+		font-size: 3.5rem;
+	}
+}
+</style>
+<!-- Custom styles for this template -->
+<link href="statics/css/product.css" rel="stylesheet">
+
+<script src="statics/js/jquery-3.4.1.min.js"></script>
+</head>
+
+<body>
+	
+
+	<div
+		class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+		<h1 class="display-4">商品列表</h1>
+		<p class="lead">以下是所有買家的商品包含其ID、品名、價格與說明</p>
+	</div>
+
+	<div class="album py-5 bg-light">
+		<div class="container">
+			<div id="product_panel" class="row"></div>
+			<button type="button" class="btn btn-outline-primary" onclick="goBackToOrderdetail();">回到訂單詳情</button>
+		</div>
+		
+	</div>
+
+	<script>   
+    //var [client_select_obj, client_select_amount]  = getSelectDataFromClient();
+    
+ 	// 取得網址參數
+	var url_string = window.location.href;
+	var url = new URL(url_string);
+	var buyer_id = url.searchParams.get("buyer_id");
+	//var buyer_id = 2;
+	
+	//設定cookies
+	function setCookie(cname, cvalue,exdays) {
+			var d = new Date();
+			d.setTime(d.getTime() + (exdays*24*60*60*1000));
+			var expires = "expires="+ d.toUTCString();
+			document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+	}
+	//取cookies函式  
+	function getCookie(cname) {
+			var name = cname + "=";
+			var decodedCookie = decodeURIComponent(document.cookie);
+			var ca = decodedCookie.split(';');
+			for(var i = 0; i <ca.length; i++) {
+			var c = ca[i];
+			while (c.charAt(0) == ' ') {
+  				c = c.substring(1);
+			}
+		if (c.indexOf(name) == 0) {
+  			return c.substring(name.length, c.length);
+		}
+			}
+			return "";
+	}
+	//刪除cookie
+	function delCookie(name){
+			document.cookie = name +"= ;expires=Thu, 01 Jan 1970 00:00:00 UTC ;path=/";
+	}
+	
+    function getAllProduct(buyer_id) {
+      $.ajax({
+        type: "GET",
+        url: "api/PController.do",
+        data:{
+        	"type" : "view",
+        	"buyer_id" : buyer_id
+        },
+        crossDomain: true,
+        cache: false,
+        dataType: 'json',
+        timeout: 5000,
+        success: function (response) {
+          if (response.status == 200) {
+        	var product_panel = '';
+        	
+        	$.each(response.response.data, function (){
+        		product_panel += addProduct(this);
+        	})
+        	
+        	$("#product_panel").append(product_panel);
+        	setButtonFunction();
+        	checkIfExistInSelect();
+          }
+        },
+        error: function () {
+          alert("無法連線到伺服器！");
+        }
+      });
+    }
+
+    getAllProduct(buyer_id);
+    
+    function addProduct(data) {
+    	let inner_html = '';
+    	inner_html += '<div class="col-md-4">';
+   		inner_html += '<div class="card-header">';
+   		inner_html += '<h4 class="font-weight-normal text-center text-truncate">' + data.name + '</h4>';
+ 		inner_html += '</div>';
+ 		inner_html += '<div class="card mb-4 shadow-sm">';
+ 		//inner_html += '<img src="statics/img/product/iPhone5C.jpg" width="100%">';
+		inner_html += '<div class="card-body">';
+		inner_html += '<h1 class="card-title pricing-card-title">代幣: ' + data.token + ' <small class="text-muted"></small></h1>';
+		inner_html += '<p class="card-text">' + data.describtion + '</p>';
+		inner_html += '<div class="d-flex justify-content-between align-items-center">';
+		inner_html += '<div class="btn-group">';
+		inner_html += '<button id="add_select_' + data.name + '_' +data.id+ '" name="add_select" type="button" class="btn btn-lg btn-block btn-outline-primary">選擇此商品</button>';
+		inner_html += '</div><small class="text-muted">id: ' + data.id + '</small>';
+		inner_html += '</div></div></div></div>';
+    	
+		return inner_html;
+    }
+    
+    function setButtonFunction() {
+    	$('button[name="add_select"]').click(function () {
+    		var action = (this.id).split('_')[0];
+    		var destination = (this.id).split('_')[1];
+    		var name = (this.id).split('_')[2];
+    		var product_id = (this.id).split('_')[3]
+    		addProductToSelect(name, product_id);
+        });
+    }
+    
+   /* function getSelectDataFromClient() {
+    	let select = JSON.parse(localStorage.getItem("client_select_obj"));
+    	let amount = JSON.parse(localStorage.getItem("client_select_amount"));
+    	select = !select ? new Array() : select;
+    	amount = !amount ? new Array() : amount;
+    	return [select, amount];
+    }*/
+    
+    /*function addProductToSelect(name, amount) {
+    	if (!(client_select_obj.includes(name))) {
+    		client_select_obj.push(name);
+    		client_select_amount.push(amount);
+    		updateSelectDataToClent();
+    	}
+    	
+    	checkIfExistInSelect();
+    }*/
+    function addProductToSelect(name, product_id) {
+    	if (getCookie("select_product_name") == "") {
+    		setCookie("select_product_name",name,1);
+    		setCookie("select_product_id",product_id,1);
+    		
+    		//updateSelectDataToClent();
+    	}
+    	else{
+    		
+    		delCookie("select_product_name");
+    		delCookie("select_product_id");
+    		setCookie("select_product_id",product_id,1);
+    		setCookie("select_product_name",name,1);
+    		
+    	}
+    	
+    	//window.location.reload("orderdetail.html");
+    	window.close("selectproduct.html");
+    	
+    	checkIfExistInSelect();
+    }
+    
+    
+   /* function updateSelectDataToClent() {
+    	localStorage.setItem("client_select_obj", JSON.stringify(client_select_obj));
+    	localStorage.setItem("client_select_amount", JSON.stringify(client_select_amount));
+    	window.location.reload("orderdetail.html");
+    	window.close();
+    }*/
+    
+    function checkIfExistInSelect() {
+    	$('button[name="add_select"]').each(function (){
+    		var action = (this.id).split('_')[0];
+    		var destination = (this.id).split('_')[1];
+    		var name = (this.id).split('_')[2];
+    		if (getCookie("select_product_name") == name) {
+    			setButtonState(this.id, false);
+    		}
+    		else {
+    			setButtonState(this.id, true);
+    		}
+    		
+        });
+    }
+    
+    function setButtonState(id, action) {
+    	if (!action) {
+    	    $('#' + id).prop('disabled', true);
+    	    $('#' + id).addClass('disabled');
+    	    $('#' + id).html('已選擇');
+    	   
+    	}
+    	else {
+    		$('#' + id).prop('disabled', false);
+    	    $('#' + id).removeClass('disabled');
+    	    $('#' + id).html('選擇此商品');
+    	}
+    }
+    function goBackToOrderdetail(){
+    	
+    	window.history.back(-1);
+    	
+    }
+  </script>
+
+	<footer class="text-muted">
+		<div class="container">
+			<p class="float-right">
+				<a href="#">Back to top</a>
+			</p>
+			<p>Album example is &copy; Bootstrap, but please download and
+				customize it for yourself!</p>
+			<p>
+				New to Bootstrap? <a href="https://getbootstrap.com/">Visit the
+					homepage</a> or read our <a
+					href="/docs/4.3/getting-started/introduction/">getting started
+					guide</a>.
+			</p>
+		</div>
+	</footer>
+</body>
+
+</html>

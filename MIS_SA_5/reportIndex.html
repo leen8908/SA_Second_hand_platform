@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>檢舉清單｜二手物交換</title>
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="icon">
+    <link href="statics/icon/favicon.ico" type="image/x-icon" rel="shortcut icon">
+    <!--<link rel="stylesheet" type="text/css" href="statics/css/cake.generic.css">  -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+
+    <script src="statics/js/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body style="background-color:black; color:white; margin:50px;">
+    <div id="container">
+        <div id="header">
+           
+        </div>
+        <div id="content">
+            <h2>檢舉清單</h2>
+             <a href="product.html" style="color:white;">首頁</a>>>
+            <a href="managerhomepage.html" style="color:white;">管理員專區</a>>>檢舉清單
+          
+
+            <div id="flashMessage" class="message" style="color:red;"></div>
+
+            <table id="table" class="table table-dark table-striped" style=" margin:20px; ">
+                <thead>
+                    <tr>
+                      <th class="text" >檢舉編號</th>
+                      <th class="text" >檢舉人編號</th>
+		              <th class="text" >檢舉人名稱</th>
+		              <th class="text" >商品編號</th>
+		              <th class="text" >商品名稱</th>
+		              <th class="text" >被檢舉人編號</th>
+		              <th class="text" >狀態</th>
+		              <th class="text" >審核的管理員</th>
+		              <th class="text" >審核檢舉</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <script type="text/javascript">
+
+           		 var manager_id = getCookie("member_id");
+
+                function getAllReport() {
+                    // 發出POST的GET請求取得所有會員列表
+                    $.ajax({
+                            type: "GET",
+                            url: "api/report.do",
+                            crossDomain: true,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    updateTable(response.response.data);
+                                    
+                                }
+                                console.log(response);
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                    });
+                }
+                
+                // 更新檢舉列表表格
+                function updateTable(data) {
+                    $("#table > tbody").empty();
+                    var table_html = '';
+                    $.each(data, function(index, value) {
+              
+                        table_html += '<tr><td scope="row">' + value['id'] + '</td>';
+                        table_html += '<td>' + value['report_member_id'] + '</td>';
+                        table_html += '<td>' + value['report_member_name'] + '</td>';
+                        table_html += '<td>' + value['product_id'] + '</td>';
+                        table_html += '<td>' + value['product_name'] + '</td>';
+                        table_html += '<td>' + value['reported_member_id'] + '</td>';
+                        table_html += '<td>' + value['status'] + '</td>';
+                        table_html += '<td>' + value['manager_id'] + '</td>';
+                        table_html += '<td>' +'<a style="color:#FFFFBB; "href="javascript: report_success(' + value['id'] + ',' + value['product_id'] + ','+ value['reported_member_id'] +','+ manager_id +');">通過</a> |';
+                        table_html += '<a style="color:#FFFFBB; "href="javascript: report_fail(' + value['id'] + ','+ manager_id +');">不通過</a></td></tr>';
+                    })
+
+                    $("#table > tbody").append(table_html);
+                }
+                
+               
+                $(document).ready(function() {
+                    getAllReport();
+                });
+                
+             // 全域變數紀錄SQL指令下的次數
+                var sql_num = 0;
+                function report_success(id,product_id,reported_member_id,manager_id) {
+                    var check = window.confirm("通過此檢舉(該物主會被停權、商品會下架)？");
+                    if (check == true) {
+                        console.log("You pressed OK!");
+                        var request = {'success':true,'id': id,'product_id':product_id,'reported_member_id': reported_member_id,'manager_id': manager_id};
+                        var data_string = JSON.stringify(request);
+                        $.ajax({
+                            type: "PUT",
+                            url: "api/report.do",
+                            crossDomain: true,
+                            data: data_string,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    $("#flashMessage").html("完成一筆檢舉囉");
+                                    $("#flashMessage").show();
+                                    getAllReport();
+                                }
+                                console.log(response);
+                                getAllReport();
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                        });
+                    }
+                    else {
+                        console.log("You pressed Cancel!");
+                    }
+                }
+                
+             // 全域變數紀錄SQL指令下的次數
+                var sql_num = 0;
+                function report_fail(id,manager_id) {
+                    var check = window.confirm("駁回此檢舉");
+                    if (check == true) {
+                        console.log("You pressed OK!");
+                        var request = {'success':false,'id': id,'manager_id': manager_id};
+                        var data_string = JSON.stringify(request);
+                        $.ajax({
+                            type: "PUT",
+                            url: "api/report.do",
+                            crossDomain: true,
+                            data: data_string,
+                            cache: false,
+                            dataType: 'json',
+                            timeout: 5000,
+                            success: function (response) {
+                                if(response.status == 200){
+                                    $("#flashMessage").html("完成一筆檢舉囉");
+                                    $("#flashMessage").show();
+                                    getAllReport();
+                                }
+                                console.log(response);
+                                getAllReport();
+                            },
+                            error: function () {
+                                alert("無法連線到伺服器！");
+                            }
+                        });
+                    }
+                    else {
+                        console.log("You pressed Cancel!");
+                    }
+                }
+                
+                //取cookies函式  
+            	function getCookie(cname) {
+				  var name = cname + "=";
+				  var decodedCookie = decodeURIComponent(document.cookie);
+				  var ca = decodedCookie.split(';');
+				  for(var i = 0; i <ca.length; i++) {
+				    var c = ca[i];
+				    while (c.charAt(0) == ' ') {
+				      c = c.substring(1);
+				    }
+				    if (c.indexOf(name) == 0) {
+				      return c.substring(name.length, c.length);
+				    }
+				  }
+				  return "";
+				}
+            </script>
+        </div>
+        <div id="footer">
+           
+        </div>
+    </div>
+    <table class="cake-sql-log" id="sql_log" summary="Cake SQL Log" cellspacing="0">
+        
+        <tbody>
+        </tbody>
+    </table>
+</body>
+
+</html>
